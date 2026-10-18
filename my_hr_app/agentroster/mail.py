@@ -88,7 +88,7 @@ def _send(emp, template_name: str, recipients: list, cc=None, extra_ctx=None, no
 		)
 	except Exception as e:
 		# an email failure must never block the state machine; it is retried by the queue
-		frappe.logger().log_error("agentroster outbound", f"{template_name}: {e}")
+		frappe.log_error(title="agentroster outbound", message=f"{template_name}: {e}")
 
 
 def send_welcome_email(emp):
@@ -253,7 +253,7 @@ def send_manager_notification(emp, text):
 				now=True,
 			)
 		except Exception as e:
-			frappe.logger().log_error("agentroster outbound", f"manager notification: {e}")
+			frappe.log_error(title="agentroster outbound", message=f"manager notification: {e}")
 
 
 def _onboarding_rows(employee: str, **filters):
@@ -279,7 +279,7 @@ def comment(emp, text: str):
 	try:
 		emp.add_comment("Comment", text)
 	except Exception:
-		frappe.logger().log_error("agentroster", f"comment failed: {text}")
+		frappe.log_error(title="agentroster", message=f"comment failed: {text}")
 
 
 # ---------------------------------------------------------------- inbound

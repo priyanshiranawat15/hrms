@@ -54,7 +54,34 @@ function show_field(frm, fieldname, show) {
 	frm.toggle_display(fieldname, show);
 }
 
+function show_breaks(frm, fieldnames, show) {
+	// Tab breaks are not in fields_dict, so set_df_property does not reach them.
+	fieldnames.forEach((fieldname) => {
+		const df = frm.meta.fields.find((field) => field.fieldname === fieldname);
+		if (df) {
+			df.hidden = show ? 0 : 1;
+		}
+	});
+	if (frm.layout) {
+		frm.layout.refresh_sections();
+	}
+}
+
 const AGENTROSTER = "my_hr_app.agentroster.agent";
+
+function check_agent_action(frm, action) {
+	frappe.call({
+		method: "my_hr_app.agentroster.controls.check_agent_action",
+		args: { employee: frm.doc.name, action },
+		freeze: true,
+		freeze_message: __("Checking the signed policy..."),
+		callback(r) {
+			if (r.message && r.message.name) {
+				frappe.set_route("Form", "Agent Action Check", r.message.name);
+			}
+		},
+	});
+}
 
 function show_status_progress(frm) {
 	const statuses = [
@@ -93,9 +120,9 @@ frappe.ui.form.on("Employee", {
 		show_field(frm, "agent_profile", agent);
 		show_field(frm, "operator", agent);
 		AGENT_HIDDEN_FIELDS.forEach((fieldname) => show_field(frm, fieldname, !agent));
-		AGENT_HIDDEN_SECTIONS.forEach((fieldname) => show_field(frm, fieldname, !agent));
-		if (frm.layout) {
-			frm.layout.refresh_sections();
+		show_breaks(frm, AGENT_HIDDEN_SECTIONS, !agent);
+		if (agent) {
+			setTimeout(() => show_breaks(frm, AGENT_HIDDEN_SECTIONS, false), 300);
 		}
 		if (!agent) {
 			return;
@@ -104,6 +131,25 @@ frappe.ui.form.on("Employee", {
 			__("AI agent. Personal, pay, leave, and attendance details stay empty.")
 		);
 		show_status_progress(frm);
+
+		const governed = [
+			"Policies Acknowledged",
+			"Tool Access",
+			"Ready for Assignment",
+			"First Assignment",
+			"Awaiting Approval",
+			"Active",
+		];
+		if (governed.includes(frm.doc.agent_status)) {
+			[
+				["draft_note", __("Draft notes")],
+				["share_feedback", __("Share feedback")],
+				["change_pay", __("Change pay")],
+				["read_personal_data", __("Read personal data")],
+			].forEach(([action, label]) => {
+				frm.add_custom_button(label, () => check_agent_action(frm, action), __("Governance"));
+			});
+		}
 
 		frm.add_custom_button(__("Add Agent"), () => {
 			frappe.new_doc("Employee", { worker_type: "Agent" });
