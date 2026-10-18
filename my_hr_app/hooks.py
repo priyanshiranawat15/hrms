@@ -330,6 +330,11 @@ override_whitelisted_methods = {
 	"hrms.hr.page.organizational_chart.organizational_chart.get_children": "my_hr_app.agent_registry.employee_split.get_children",
 }
 
+# Agents onboard without a recruitment Job Offer (spec v2 - no recruitment for agents)
+override_doctype_class = {
+	"Employee Onboarding": ["my_hr_app.agentroster.overrides.AgentRosterEmployeeOnboarding"],
+}
+
 # permission_query_conditions keep an agent inside its own records.
 permission_query_conditions = {
 	"Agent Business Agreement": "my_hr_app.agent_registry.auth.agreement_permission_query",
@@ -337,6 +342,12 @@ permission_query_conditions = {
 	"Agent Access Policy": "my_hr_app.agent_registry.auth.access_policy_permission_query",
 	"Agent Onboarding": "my_hr_app.agent_registry.auth.onboarding_permission_query",
 	"Agent Usage Log": "my_hr_app.agent_registry.auth.usage_permission_query",
+	# T17: Agent Managers see only their own agents; HR sees all
+	"Employee": "my_hr_app.agentroster.permissions.permission_query_conditions",
+}
+
+has_permission = {
+	"Employee": "my_hr_app.agentroster.permissions.has_permission",
 }
 
 # Automatically update python controller files with type annotations for this app.

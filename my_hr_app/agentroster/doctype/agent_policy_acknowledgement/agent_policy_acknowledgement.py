@@ -30,16 +30,41 @@ class AgentPolicyAcknowledgement(Document):
 		superseded: DF.Check
 	# end: auto-generated types
 
+	IMMUTABLE_FIELDS = ("policy_document", "policy_code", "policy_version", "content_hash", "ack_text")
+
 	def validate(self):
+		# Acknowledgements are signed evidence; edits break the audit chain (T18).
+		# Checked pre-write: immutability must block the UPDATE itself.
+		if not self.is_new() and not self.flags.from_agentroster:
+			previous = frappe.db.get_value(
+				"Agent Policy Acknowledgement",
+				self.name,
+				list(self.IMMUTABLE_FIELDS),
+				as_dict=True,
+			)
+			if previous:
+				for field in self.IMMUTABLE_FIELDS:
+					if (previous.get(field) or "") != (self.get(field) or ""):
+						frappe.throw(
+							_("Acknowledgement evidence is immutable. The manager can supersede it instead.")
+						)
 		policy = frappe.get_doc("Policy Document", self.policy_document)
 		if not self.policy_code:
 			self.policy_code = policy.code
 			self.policy_version = policy.version
 			self.content_hash = policy.content_hash
+		# the signed hash must still match the published policy text (tamper chain)
+		elif self.content_hash != policy.content_hash:
+			frappe.throw(
+				_("Acknowledged content does not match the published policy version; re-acknowledge.")
+			)
 		if self.method == "Email reply" and self.source_email:
 			self.sender_verified = 1
 		if self.method == "Recorded by manager" and not self.check_note:
 			frappe.throw(_("A note is required when a manager records an acknowledgement"))
+
+	def on_update(self):
+		pass
 
 	def on_trash(self):
 		frappe.throw(_("Agent Policy Acknowledgements cannot be deleted. Mark superseded instead."))

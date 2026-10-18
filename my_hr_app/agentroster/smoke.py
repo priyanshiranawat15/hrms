@@ -21,6 +21,8 @@ def run():
 
 	# R1: Add Agent -> Employee worker_type=Agent, agent_status=Draft
 	emp = ensure_agent(company, priya)
+	# retire leftover test policies from governance runs (only demo policies stay published)
+	frappe.db.sql("update `tabPolicy Document` set status = 'Retired' where code = 'GOVREACK' or (code = 'RULES' and version > 1)")
 	# reset any state left over from a previous smoke run
 	frappe.db.set_value("Employee", emp.name, "agent_status", "Draft")
 	frappe.db.set_value("Employee", emp.name, "status", "Active")

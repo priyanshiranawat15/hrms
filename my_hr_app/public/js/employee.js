@@ -190,6 +190,38 @@ frappe.ui.form.on("Employee", {
 				d.show();
 			});
 		}
+		if (frm.doc.agent_status === "Active" || frm.doc.agent_status === "Awaiting Approval" || frm.doc.agent_status === "First Assignment") {
+			frm.add_custom_button(__("Suspend Access"), () => {
+				let d = new frappe.ui.Dialog({
+					title: __("Suspend {0}'s access", [frm.doc.employee_name]),
+					fields: [
+						{ fieldname: "reason", fieldtype: "Small Text", label: __("Why (recorded on the agent's timeline)"), reqd: 1 },
+					],
+					primary_action_label: __("Suspend Now"),
+					primary_action(values) {
+						frappe.call({
+							method: `${AGENTROSTER}.suspend_agent`,
+							args: { employee: frm.doc.name, reason: values.reason },
+							freeze: true,
+							callback: () => frm.reload_doc(),
+						});
+						d.hide();
+					},
+				});
+				d.show();
+			});
+		}
+		if (frm.doc.status === "Suspended") {
+			frm.dashboard.set_headline(__("Access suspended. Humans hold the keys."), "red");
+			frm.add_custom_button(__("Resume Access"), () => {
+				frappe.call({
+					method: `${AGENTROSTER}.resume_agent`,
+					args: { employee: frm.doc.name },
+					freeze: true,
+					callback: () => frm.reload_doc(),
+				});
+			});
+		}
 		if (frm.doc.agent_status !== "Offboarding" && frm.doc.agent_status !== "Offboarded") {
 			frm.add_custom_button(__("Offboard"), () => {
 				let d = new frappe.ui.Dialog({

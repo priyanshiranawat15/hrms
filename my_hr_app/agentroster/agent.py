@@ -63,7 +63,7 @@ def transition_allowed(old: str | None, new: str | None) -> bool:
 
 
 def set_agent_status(doc, status: str, save: bool = False):
-	"""Move an agent's status, raising on an illegal transition."""
+	"""Move an agent's status, raising on an illegal transition. Every move is logged to the timeline (R11)."""
 	old = get_agent_status(doc.name) if not doc.is_new() else None
 	if not transition_allowed(old, status):
 		frappe.throw(
@@ -73,6 +73,15 @@ def set_agent_status(doc, status: str, save: bool = False):
 	if save:
 		doc.flags.from_agentroster = True
 		doc.save(ignore_permissions=True)
+		try:
+			doc.add_comment(
+				"Comment",
+				_("Agent status: {0} -> {1} (by {2})").format(
+					old or "New", status, frappe.session.user or "system"
+				),
+			)
+		except Exception:
+			pass
 
 
 def validate_agent(doc, method=None):
@@ -155,7 +164,8 @@ def acks_exist(employee: str) -> bool:
 def validate_onboarding(doc, method=None):
 	"""Employee Onboarding validate: tool invite rows are locked until all required acks exist.
 
-	Also syncs the agent status from the checklist rows (spec 6.1 steps 4-5).
+	Also syncs the agent status from the checklist rows (spec 6.1 steps 4-5) and
+	enforces that Accepted/Verified rows carry evidence (Layer 3 audit).
 	"""
 	employee = doc.employee
 	if not employee or not frappe.db.exists("Employee", employee):
@@ -166,6 +176,12 @@ def validate_onboarding(doc, method=None):
 		if row.get("access_status") == "Invited" and not acks_exist(employee):
 			frappe.throw(
 				_("Row {0}: policies must be acknowledged before any tool invite is sent").format(
+					row.activity_name
+				)
+			)
+		if (row.get("access_status") or "") in ("Accepted", "Verified") and not (row.get("evidence") or "").strip():
+			frappe.throw(
+				_("Row {0}: evidence (username, note) is required to record Accepted/Verified").format(
 					row.activity_name
 				)
 			)
@@ -338,6 +354,11 @@ def approve_agent(employee: str, note: str | None = None, approved_via: str = "H
 		frappe.throw(_("Not an agent"))
 	if get_agent_status(employee) != "Awaiting Approval":
 		frappe.throw(_("The agent must be Awaiting Approval first"))
+	# Check layer (Layer 2): the manager must have confirmed understanding.
+	if (emp.check_result or "Not checked") == "Needs follow-up":
+		frappe.throw(_("The check result is 'Needs follow-up'; resolve it before approving."))
+	if (emp.check_result or "Not checked") == "Not checked" and not (note or "").strip():
+		frappe.throw(_("Record the check result (Pass) or an approval note before approving."))
 
 	emp.approved_by = frappe.session.user
 	emp.approved_on = now_datetime()
@@ -371,6 +392,67 @@ def request_changes(employee: str, note: str):
 
 	mail.send_changes_requested_email(emp, note)
 	frappe.msgprint(_("Changes requested; note sent to the agent"))
+
+
+@frappe.whitelist()
+def suspend_agent(employee: str, reason: str):
+	"""Emergency human revocation (Layer 3): pause the agent immediately.
+
+	Sets the Employee status to Suspended, marks tool rows Blocked, and notifies
+	manager + operator. Offboarding can follow; humans hold the keys.
+	"""
+	emp = frappe.get_doc("Employee", employee)
+	if not is_agent(emp):
+		frappe.throw(_("Not an agent"))
+	if emp.status in ("Left",):
+		frappe.throw(_("Agent already left"))
+	emp.status = "Suspended"
+	emp.flags.from_agentroster = True
+	emp.save(ignore_permissions=True)
+	emp.add_comment(
+		"Comment",
+		_("Agent access suspended by {0}: {1}").format(frappe.session.user, reason),
+	)
+	# mark every not-removed tool row Blocked so the checklist reflects the pause
+	parents = [("Employee Onboarding", _get_active_onboarding(employee))]
+	if get_agent_status(employee) == "Offboarding":
+		parents.append(("Employee Separation", _get_active_separation(employee)))
+	for parent_type, parent_name in parents:
+		if not parent_name:
+			continue
+		parent = frappe.get_doc(parent_type, parent_name)
+		for row in parent.activities:
+			if (row.activity_kind or "") in ("Tool Invite", "Tool Removal") and (row.access_status or "") in ("Not started", "Invited", "Accepted", "Verified"):
+				row.access_status = "Blocked"
+		parent.flags.from_agentroster = True
+		parent.save(ignore_permissions=True)
+	from my_hr_app.agentroster import mail
+
+	mail.send_manager_notification(emp, _("Agent access suspended: {0}").format(reason))
+	frappe.db.commit()
+	frappe.msgprint(_("Agent suspended"))
+
+
+@frappe.whitelist()
+def resume_agent(employee: str, note: str | None = None):
+	"""Resume a suspended agent after the manager decides it is safe."""
+	emp = frappe.get_doc("Employee", employee)
+	if not is_agent(emp):
+		frappe.throw(_("Not an agent"))
+	if emp.status != "Suspended":
+		frappe.throw(_("Agent is not suspended"))
+	emp.status = "Active"
+	emp.flags.from_agentroster = True
+	emp.save(ignore_permissions=True)
+	emp.add_comment(
+		"Comment",
+		_("Agent access resumed by {0}{1}").format(frappe.session.user, f": {note}" if note else ""),
+	)
+	from my_hr_app.agentroster import mail
+
+	mail.send_manager_notification(emp, _("Agent access resumed"))
+	frappe.db.commit()
+	frappe.msgprint(_("Agent resumed"))
 
 
 @frappe.whitelist()
@@ -514,5 +596,6 @@ def on_separation_update(doc, method=None):
 	rows = doc.activities or []
 	all_removed = bool(rows) and all((r.get("access_status") or "") == "Removed" for r in rows)
 	confirmed = (doc.get("agent_confirmation") == "Received")
-	if all_removed and confirmed:
+	# only close when the agent is actually in the Offboarding state
+	if all_removed and confirmed and get_agent_status(emp.name) == "Offboarding":
 		complete_offboarding(doc.employee)

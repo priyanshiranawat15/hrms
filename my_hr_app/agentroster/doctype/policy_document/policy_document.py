@@ -54,6 +54,20 @@ class PolicyDocument(Document):
 			self.compute_content_hash()
 		elif self.status == "Draft":
 			self.content_hash = None
+		# Tamper-evidence: a published (or retired) policy body is frozen.
+		# Any change to its text must go through a new version that supersedes it.
+		elif self.status == "Retired":
+			pass
+		if self.status in ("Published", "Retired") and self.content_hash:
+			stored_hash = None
+			if not self.is_new():
+				stored_hash = frappe.db.get_value("Policy Document", self.name, "content_hash")
+			if stored_hash and stored_hash != self.content_hash:
+				frappe.throw(
+					_(
+						"A published policy's body cannot be changed. Publish a new version that supersedes this one."
+					)
+				)
 
 	def compute_content_hash(self):
 		if not self.body:
