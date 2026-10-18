@@ -22,6 +22,10 @@ def get_context(context):
 		for p in required_policies(employee)
 	]
 	context.posted = frappe.form_dict.get("posted") == "1"
+	# A logged-in agent (e.g. it opened /agent-onboarding first) has a CSRF token in its
+	# session, so the plain HTML form must send it back or Frappe rejects the POST (400).
+	from frappe.sessions import get_csrf_token
+	context.csrf_token = "" if frappe.session.user == "Guest" else get_csrf_token()
 
 
 def required_policies(employee):
