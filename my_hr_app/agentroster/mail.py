@@ -481,6 +481,8 @@ def handle_ack(doc, emp, sender, line):
 		created.append(f"{code} v{version}")
 
 	if created and acks_exist(emp.name):
+		# the acks above update the Employee row (policy_ack_status), so reload before saving
+		emp.reload()
 		set_agent_status(emp, "Policies Acknowledged", save=True)
 		send_manager_notification(emp, _("Policies acknowledged"))
 		comment(emp, _("Agent Policy Acknowledgement created: {0}").format(", ".join(created)))
