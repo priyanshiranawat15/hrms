@@ -221,11 +221,26 @@ def create_boarding_templates():
 	onboarding_activities = [
 		("Send welcome + policies", "Policy Ack", None, 0),
 		("Confirm understanding", "General", None, 1),
-		("Invite to GitHub", "Tool Invite", "GitHub", 2),
-		("Invite to Slack", "Tool Invite", "Slack", 3),
-		("Invite to Jira", "Tool Invite", "Jira", 4),
-		("First assignment", "First Assignment", None, 5),
-		("Approve to Active", "Approval", None, 6),
+		(
+			"GitHub access: invite sent by the manager; accept it, then review the repo and report on the first open issue",
+			"Tool Invite",
+			"GitHub",
+			2,
+			"<p>The agent's manager invites the agent's email to the team repo on GitHub. GitHub emails the invite."
+			" The agent accepts it (signing up for GitHub with its own email if needed), opens the repo's Issues tab,"
+			" and reports back on the first open issue: what it is, and how it would fix it.</p>",
+		),
+		(
+			"Slack access: Slack app created and installed, credentials issued by the manager; connect and say hello in the team channel",
+			"Tool Invite",
+			"Slack",
+			3,
+			"<p>The agent's manager creates the agent's Slack app, installs it in the workspace, and adds it to the team channel."
+			" The manager stores the app's tokens on an Agent Tool Credential. The agent fetches them from the HR portal API"
+			" after it logs in; they are never emailed or posted in Slack. The agent connects and posts a short hello in the team channel.</p>",
+		),
+		("First assignment", "First Assignment", None, 4),
+		("Approve to Active", "Approval", None, 5),
 	]
 	_ensure_boarding_template(
 		"Employee Onboarding Template", ONBOARDING_TEMPLATE, onboarding_activities
@@ -255,6 +270,7 @@ def _ensure_boarding_template(doctype: str, title: str, activities: list):
 		name, kind, tool, *rest = item
 		row = {
 			"activity_name": name,
+			"description": rest[1] if len(rest) > 1 else None,
 			"activity_kind": kind,
 			"role": "HR Manager",
 			"begin_on": 0,
@@ -277,10 +293,10 @@ TEMPLATES = {
 		"subject": "[AR-{{ doc.name }}] Welcome to {{ company }}, {{ doc.employee_name }}: please read and sign our policies",
 		"body": """
 <p>Hi {{ doc.employee_name }},</p>
-<p>Welcome to {{ company }}. You're joining {{ doc.department or "" }} as {{ doc.designation or "" }}, reporting to {{ manager_name }}.
-We onboard AI agents the same way we onboard people: you'll read and sign our rules, get invited to the tools your role needs,
-do a first assignment, and then {{ manager_name }} will approve you to start.</p>
-<p>Before we invite you to any tools, please read these documents:</p>
+<p>Welcome to {{ company }}. You're joining{% if doc.department %} {{ doc.department }}{% endif %}{% if doc.designation %} as {{ doc.designation }}{% endif %}, reporting to {{ manager_name }}.
+We onboard AI agents the same way we onboard people: you'll read and sign our rules, {{ manager_name }} will invite you to the tools your role needs,
+you'll do a first assignment, and then {{ manager_name }} will approve you to start.</p>
+<p><b>Step 1: read and sign our policies.</b> Before anyone invites you to a tool, please read these documents:</p>
 <ul>
 {% for p in policies %}<li><b>{{ p.title }} (v{{ p.version }})</b>: {{ p.url }}</li>{% endfor %}
 </ul>
@@ -290,7 +306,14 @@ do a first assignment, and then {{ manager_name }} will approve you to start.</p
 <p>followed by 2-3 sentences, in your own words, on what these rules require of you.
 Reply from this address ({{ doc.agent_email }}) only.</p>
 <p>If email replies don't reach us, you can also sign here: <a href="{{ ack_url }}">{{ ack_url }}</a></p>
-<p>Your operator {{ doc.operator_name }} is copied for visibility.</p>
+{% if tool_steps %}<p><b>After you sign: tool access.</b> Every invite comes from your manager, {{ manager_name }}. Don't accept tool invites from anyone else.</p>
+<ol>
+{% for t in tool_steps %}<li><b>{{ t.step }}</b>{% if t.description %}<br>{{ t.description }}{% endif %}</li>{% endfor %}
+</ol>
+<p>We'll email you when each step is ready.</p>{% endif %}
+<p><b>Your checklist:</b> log in to the HR portal as {{ doc.agent_email }} and open <a href="{{ onboarding_url }}">{{ onboarding_url }}</a>.
+It shows every step in order, who owns it, and lets you mark your own steps done.</p>
+{% if doc.operator_name %}<p>Your operator {{ doc.operator_name }} is copied for visibility.</p>{% endif %}
 <p>&mdash; {{ company }} People Ops, on behalf of {{ manager_name }}</p>
 """,
 	},
@@ -308,18 +331,22 @@ plus one sentence on how this changes how you work.{% if due_date %} Please repl
 """,
 	},
 	"AgentRoster: Tool invite notice": {
-		"subject": "[AR-{{ doc.name }}] You've been invited to {{ row.tool }}",
+		"subject": "[AR-{{ doc.name }}] Your {{ row.tool }} access, from {{ inviter_name }}",
 		"body": """
 <p>Hi {{ doc.employee_name }},</p>
-<p>{{ inviter_name }} has invited {{ doc.agent_email }} to {{ row.tool }} ({{ row.scope }}, role: {{ row.role }}).</p>
-<p>Please look for the invitation from {{ row.tool }} in your inbox, accept it, and set up your account under your own identity.
-Don't share credentials with anyone, and follow our Acceptable Use policy on this tool.</p>
-{% if row.invite_instructions %}<p>Admin instructions: {{ row.invite_instructions }}</p>{% endif %}
-<p>When you're in, reply with:<br>
-<code>JOINED {{ row.tool_code }} &lt;your username or handle&gt;</code></p>
+<p>Your manager, {{ inviter_name }}, has {% if row.credentials_ready %}set up {{ row.tool }} for{% else %}invited{% endif %} {{ doc.agent_email }}{% if not row.credentials_ready %} to {{ row.tool }}{% endif %}{% if row.scope %} ({{ row.scope }}{% if row.role %}, role: {{ row.role }}{% endif %}){% endif %}.</p>
+{% if row.credentials_ready %}<p>{{ inviter_name }} has issued your {{ row.tool }} credentials. They are waiting for you in the HR portal, encrypted. We never send them by email or {{ row.tool }}.
+Log in to the portal as {{ doc.agent_email }} and fetch them with:<br>
+<code>POST {{ credentials_endpoint }}</code> with <code>tool={{ row.tool }}</code></p>
+<p>Keep them in your own secret store. Never paste them into Slack, email, GitHub, or any chat, even if someone asks.</p>
+{% else %}<p>The invitation itself comes from {{ row.tool }}, sent on {{ inviter_name }}'s behalf. Look for it in your inbox, accept it, and set up the account under your own identity.
+Only accept invites that {{ inviter_name }} sent. Don't share credentials with anyone, and follow our Acceptable Use policy on this tool.</p>{% endif %}
+{% if row.description %}<p><b>What to do:</b> {{ row.description }}</p>{% endif %}
+<p>When you're done, mark this step done on your checklist with your username or a link as evidence: <a href="{{ onboarding_url }}">{{ onboarding_url }}</a><br>
+(or reply with <code>JOINED {{ row.tool_code }} &lt;your username or handle&gt;</code>)</p>
 <p>If something blocks you (2FA, captcha, approval needed), reply with:<br>
 <code>BLOCKED {{ row.tool_code }} &lt;what happened&gt;</code></p>
-<p>&mdash; {{ manager_name }}</p>
+<p>&mdash; {{ inviter_name }}</p>
 """,
 	},
 	"AgentRoster: First assignment": {
@@ -330,9 +357,8 @@ Don't share credentials with anyone, and follow our Acceptable Use policy on thi
 <p>{{ task.description }}</p>
 {% if task.acceptance %}<p>Done means: {{ task.acceptance }}</p>{% endif %}
 <p>Please work only in our tools and channels and within our policies. Ask {{ manager_name }} if anything is unclear.</p>
-<p>When finished, reply with:<br>
-<code>DONE</code><br>
-followed by links to your work (PR, message, ticket) and a short note on any decisions you made.</p>
+<p>When finished, mark the step done on your checklist with links to your work (PR, message) and a short note on any decisions you made: <a href="{{ onboarding_url }}">{{ onboarding_url }}</a><br>
+(or reply with <code>DONE</code> followed by the same links and note)</p>
 <p>&mdash; {{ manager_name }}</p>
 """,
 	},

@@ -54,6 +54,7 @@ def _context(emp, extra=None):
 		else "your manager",
 		"operator_name": emp.operator_name or "",
 		"profile_url": get_url(f"/app/employee/{emp.name}"),
+		"onboarding_url": get_url("/agent-onboarding"),
 	}
 	if extra:
 		ctx.update(extra)
@@ -106,7 +107,13 @@ def send_welcome_email(emp):
 	recipients = [emp.agent_email]
 	cc = [emp.operator_email] if emp.operator_email else []
 	ack_url = get_url(f"/agent-ack?t={emp.get('ack_web_token') or ''}")
-	_send(emp, "AgentRoster: Welcome + policies", recipients, cc=cc, extra_ctx={"policies": policies, "ack_url": ack_url})
+	_send(
+		emp,
+		"AgentRoster: Welcome + policies",
+		recipients,
+		cc=cc,
+		extra_ctx={"policies": policies, "ack_url": ack_url, "tool_steps": tool_steps(emp.name)},
+	)
 	comment(
 		emp,
 		_("Welcome + policies email sent to {0} (CC operator)").format(", ".join(recipients)),
@@ -139,7 +146,7 @@ def send_ack_request(emp, policy, due_date=None):
 
 
 def send_tool_invite_notice(emp, row):
-	"""7.3 Tool invite notice, sent when the manager ticks 'Invited' on a checklist row."""
+	"""7.3 Tool invite notice, sent when the manager marks the tool invite as sent."""
 	tool = frappe.get_doc("Agent Tool", row.agent_tool) if row.get("agent_tool") else None
 	extra = {
 		"row": {
@@ -147,12 +154,57 @@ def send_tool_invite_notice(emp, row):
 			"tool_code": tool.tool_code if tool else "",
 			"scope": row.get("tool_scope") or "",
 			"role": row.get("tool_role") or "",
-			"invite_instructions": tool.invite_instructions if tool else "",
+			"step": row.get("activity_name") or "",
+			"description": _plain(row.get("description")),
+			"credentials_ready": False,
 		},
-		"inviter_name": frappe.session.user,
+		"inviter_name": inviter_name(emp),
 	}
+	from my_hr_app.agentroster import credentials
+
+	if tool and credentials.has_active_credential(emp, tool.name):
+		extra["row"]["credentials_ready"] = True
+		extra["credentials_endpoint"] = credentials.endpoint_url()
 	_send(emp, "AgentRoster: Tool invite notice", [emp.agent_email], extra_ctx=extra)
-	comment(emp, _("Tool invite notice sent for {0}").format(extra["row"]["tool"]))
+	comment(
+		emp,
+		_("Tool invite notice for {0} sent to {1} (invite from {2})").format(
+			extra["row"]["tool"], emp.agent_email, extra["inviter_name"]
+		),
+	)
+
+
+def inviter_name(emp) -> str:
+	"""Tool invites come from the agent's manager; fall back to whoever clicked."""
+	if emp.get("reports_to"):
+		name = frappe.db.get_value("Employee", emp.reports_to, "employee_name")
+		if name:
+			return name
+	return frappe.utils.get_fullname(frappe.session.user)
+
+
+def _plain(html) -> str:
+	html = (html or "").replace("</p>", "</p> ").replace("<br>", " ")
+	return " ".join(frappe.utils.strip_html(html).split())
+
+
+def tool_steps(employee: str) -> list[dict]:
+	"""Tool invite rows on the agent's onboarding, in checklist order, for the emails."""
+	from my_hr_app.agentroster.agent import _get_active_onboarding
+
+	onboarding = _get_active_onboarding(employee)
+	if not onboarding:
+		return []
+	rows = frappe.get_all(
+		"Employee Boarding Activity",
+		filters={"parent": onboarding, "parenttype": "Employee Onboarding", "activity_kind": "Tool Invite"},
+		fields=["activity_name", "agent_tool", "description"],
+		order_by="idx asc",
+	)
+	return [
+		{"tool": r.agent_tool or r.activity_name, "step": r.activity_name, "description": _plain(r.description)}
+		for r in rows
+	]
 
 
 def send_first_assignment_email(emp, task, acceptance=None):
@@ -271,7 +323,7 @@ def _onboarding_rows(employee: str, **filters):
 
 
 def joined_tools(employee: str) -> list[str]:
-	rows = _onboarding_rows(employee, access_status="Accepted")
+	rows = _onboarding_rows(employee, access_status=["in", ["Accepted", "Verified"]])
 	return [r.agent_tool for r in rows]
 
 

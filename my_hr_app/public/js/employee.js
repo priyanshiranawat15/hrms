@@ -207,6 +207,77 @@ frappe.ui.form.on("Employee", {
 				});
 			});
 		}
+		if (["Policies Acknowledged", "Tool Access", "Ready for Assignment"].includes(frm.doc.agent_status)) {
+			frm.add_custom_button(__("Onboarding Checklist"), () => {
+				frappe.db
+					.get_value("Employee Onboarding", { employee: frm.doc.name, docstatus: ["!=", 2] }, "name")
+					.then((r) => r.message && r.message.name && frappe.set_route("Form", "Employee Onboarding", r.message.name));
+			});
+		}
+		if (frm.doc.agent_status === "Policies Acknowledged") {
+			frm.add_custom_button(__("Mark Tool Invites Sent"), () => {
+				frappe.confirm(
+					__(
+						"Have you sent the tool invites (GitHub from you, Slack from Slack on your behalf)? {0} gets an email for each one.",
+						[frm.doc.employee_name]
+					),
+					() =>
+						frappe.call({
+							method: `${AGENTROSTER}.send_tool_invites`,
+							args: { employee: frm.doc.name },
+							freeze: true,
+							freeze_message: __("Sending invite notices..."),
+							callback: () => frm.reload_doc(),
+						})
+				);
+			});
+		}
+		if (frm.doc.agent_status === "Tool Access") {
+			frm.add_custom_button(__("Mark Tool Joined"), () => {
+				frappe.call({
+					method: `${AGENTROSTER}.get_tool_rows`,
+					args: { employee: frm.doc.name },
+					callback(r) {
+						const rows = (r.message || []).filter((row) => row.access_status === "Invited");
+						if (!rows.length) {
+							frappe.msgprint(__("No tool invites are waiting."));
+							return;
+						}
+						const d = new frappe.ui.Dialog({
+							title: __("Mark Tool Joined"),
+							fields: [
+								{
+									fieldname: "tool",
+									fieldtype: "Select",
+									label: __("Tool"),
+									options: rows.map((row) => row.agent_tool).join("\n"),
+									default: rows[0].agent_tool,
+									reqd: 1,
+								},
+								{
+									fieldname: "evidence",
+									fieldtype: "Data",
+									label: __("Agent's username, handle, or link"),
+									reqd: 1,
+								},
+							],
+							primary_action_label: __("Mark Joined"),
+							primary_action(values) {
+								const match = rows.find((row) => row.agent_tool === values.tool);
+								frappe.call({
+									method: `${AGENTROSTER}.mark_tool_joined`,
+									args: { employee: frm.doc.name, row_name: match.name, evidence: values.evidence },
+									freeze: true,
+									callback: () => frm.reload_doc(),
+								});
+								d.hide();
+							},
+						});
+						d.show();
+					},
+				});
+			});
+		}
 		if (frm.doc.agent_status === "Ready for Assignment") {
 			frm.add_custom_button(__("Send First Assignment"), () => {
 				let d = new frappe.ui.Dialog({
