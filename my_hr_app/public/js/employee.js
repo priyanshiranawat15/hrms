@@ -166,6 +166,47 @@ frappe.ui.form.on("Employee", {
 				});
 			});
 		}
+		if (frm.doc.agent_status === "Policies Acknowledged") {
+			frm.add_custom_button(__("Send Policy Quiz"), () => {
+				frappe.call({
+					method: `${AGENTROSTER}.list_signed_acks`,
+					args: { employee: frm.doc.name },
+					callback(r) {
+						const acks = r.message || [];
+						if (!acks.length) {
+							frappe.msgprint(__("No signed policies yet."));
+							return;
+						}
+						let d = new frappe.ui.Dialog({
+							title: __("Send Policy Quiz"),
+							fields: [
+								{
+									fieldname: "ack",
+									fieldtype: "Select",
+									label: __("Policy"),
+									options: acks.map((a) => a.policy_code + " v" + a.policy_version).join("\n"),
+									reqd: 1,
+								},
+							],
+							primary_action_label: __("Send Quiz"),
+							primary_action(values) {
+								const match = acks.find(
+									(a) => a.policy_code + " v" + a.policy_version === values.ack
+								);
+								frappe.call({
+									method: `${AGENTROSTER}.send_policy_quiz`,
+									args: { employee: frm.doc.name, ack_name: match.ack },
+									freeze: true,
+									callback: () => frm.reload_doc(),
+								});
+								d.hide();
+							},
+						});
+						d.show();
+					},
+				});
+			});
+		}
 		if (frm.doc.agent_status === "Ready for Assignment") {
 			frm.add_custom_button(__("Send First Assignment"), () => {
 				let d = new frappe.ui.Dialog({

@@ -105,7 +105,8 @@ def send_welcome_email(emp):
 		)
 	recipients = [emp.agent_email]
 	cc = [emp.operator_email] if emp.operator_email else []
-	_send(emp, "AgentRoster: Welcome + policies", recipients, cc=cc, extra_ctx={"policies": policies})
+	ack_url = get_url(f"/agent-ack?t={emp.get('ack_web_token') or ''}")
+	_send(emp, "AgentRoster: Welcome + policies", recipients, cc=cc, extra_ctx={"policies": policies, "ack_url": ack_url})
 	comment(
 		emp,
 		_("Welcome + policies email sent to {0} (CC operator)").format(", ".join(recipients)),

@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Agent Acknowledgement{% endblock %}
+
+{% block page_content %}
+<div class="container my-5" style="max-width: 720px;">
+	{% if error %}
+	<div class="alert alert-danger">{{ error }}</div>
+	{% elif posted %}
+	<div class="alert alert-success">
+		<h4>{{ _("Signed. Thank you.") }}</h4>
+		<p>{{ _("Your acknowledgement of the current policies is recorded on your employee record.") }}</p>
+	</div>
+	{% else %}
+	<h2>{{ _("Sign our policies") }}</h2>
+	<p class="text-muted">{{ _("This is the fallback signing form linked from your welcome email. Reply by email if you can; use this only if email replies fail.") }}</p>
+	<ul>
+		{% for p in policies %}
+		<li><b>{{ p.title }} (v{{ p.version }})</b>: <a href="{{ p.url }}">{{ p.url }}</a></li>
+		{% endfor %}
+	</ul>
+	<form method="POST">
+		<input type="hidden" name="t" value="{{ token }}">
+		<input type="hidden" name="cmd" value="my_hr_app.www.agent_ack.record_ack">
+		<div class="mb-3">
+			<label class="form-label">{{ _("In your own words: what do these rules require of you? (2-3 sentences)") }}</label>
+			<textarea class="form-control" name="summary" rows="4" required></textarea>
+		</div>
+		<button class="btn btn-primary" type="submit">{{ _("Sign policies") }}</button>
+	</form>
+	{% endif %}
+</div>
+{% endblock %}

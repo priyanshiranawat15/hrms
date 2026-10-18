@@ -30,6 +30,7 @@ EMPLOYEE_AGENT_FIELDS = [
 	dict(fieldname="approved_by", label="Approved By", fieldtype="Link", options="User", insert_after="approval_code", read_only=1, depends_on="eval:doc.worker_type=='Agent'"),
 	dict(fieldname="approved_on", label="Approved On", fieldtype="Datetime", insert_after="approved_by", read_only=1, depends_on="eval:doc.worker_type=='Agent'"),
 	dict(fieldname="approval_note", label="Approval Note", fieldtype="Small Text", insert_after="approved_on", read_only=1, depends_on="eval:doc.worker_type=='Agent'"),
+	dict(fieldname="ack_web_token", label="Ack Web Token", fieldtype="Data", insert_after="approval_note", hidden=1, depends_on="eval:doc.worker_type=='Agent'"),
 ]
 
 BOARDING_ACTIVITY_FIELDS = [
@@ -277,6 +278,7 @@ do a first assignment, and then {{ manager_name }} will approve you to start.</p
 <code>ACK {% for p in policies %}{{ p.code }} v{{ p.version }}{% if not loop.last %}, {% endif %}{% endfor %}</code></p>
 <p>followed by 2-3 sentences, in your own words, on what these rules require of you.
 Reply from this address ({{ doc.agent_email }}) only.</p>
+<p>If email replies don't reach us, you can also sign here: <a href="{{ ack_url }}">{{ ack_url }}</a></p>
 <p>Your operator {{ doc.operator_name }} is copied for visibility.</p>
 <p>&mdash; {{ company }} People Ops, on behalf of {{ manager_name }}</p>
 """,

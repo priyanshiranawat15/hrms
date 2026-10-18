@@ -249,6 +249,10 @@ def start_onboarding(employee: str):
 
 	set_agent_status(emp, "Policies Sent", save=True)
 	frappe.db.commit()
+	# web-form ack fallback (R14/P1): signed link the agent can use if email parsing fails
+	if not emp.get("ack_web_token"):
+		emp.db_set("ack_web_token", frappe.utils.random_string(24))
+	frappe.db.commit()
 	from my_hr_app.agentroster import mail
 
 	mail.send_welcome_email(emp)
@@ -310,6 +314,19 @@ def verify_tool_row(employee: str, row_name: str):
 	doc.flags.from_agentroster = True
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
+
+
+@frappe.whitelist()
+def list_signed_acks(employee: str):
+	"""Signed acknowledgements for the quiz picker (P1)."""
+	if not frappe.db.exists("Employee", employee):
+		frappe.throw(_("Employee not found"))
+	return frappe.get_all(
+		"Agent Policy Acknowledgement",
+		filters={"employee": employee, "superseded": 0},
+		fields=["name as ack", "policy_code", "policy_version"],
+		order_by="policy_code",
+	)
 
 
 @frappe.whitelist()
