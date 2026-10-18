@@ -293,6 +293,7 @@ def block_skipped_document(doc, method=None):
 			)
 
 
+@frappe.whitelist()
 def get_children(parent=None, company=None, exclude_node=None):
 	from hrms.hr.page.organizational_chart.organizational_chart import get_children as original
 
