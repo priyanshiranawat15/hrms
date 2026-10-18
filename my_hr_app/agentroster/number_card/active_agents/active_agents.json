@@ -1,0 +1,18 @@
+{
+ "creation": "2026-10-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Employee",
+ "filters_json": "[[\"Employee\",\"worker_type\",\"=\",\"Agent\"],[\"Employee\",\"agent_status\",\"=\",\"Active\"]]",
+ "function": "Count",
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Active Agents",
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agentroster",
+ "name": "Active Agents",
+ "owner": "Administrator",
+ "show_percentage_stats": 0,
+ "type": "Document Type"
+}

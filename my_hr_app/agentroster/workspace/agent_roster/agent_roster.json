@@ -1,0 +1,53 @@
+{
+ "app": "my_hr_app",
+ "charts": [],
+ "content": "[{\"id\":\"arhdr\",\"type\":\"header\",\"data\":{\"text\":\"Onboard agents like people\",\"col\":12}},{\"id\":\"arn1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Agents Onboarding\",\"col\":2}},{\"id\":\"arn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Awaiting Approval\",\"col\":2}},{\"id\":\"arn3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Agents\",\"col\":2}},{\"id\":\"arn4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Re-ack Required\",\"col\":3}},{\"id\":\"arn5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Agents Offboarding\",\"col\":3}},{\"id\":\"ars\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "creation": "2026-10-17 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "bot",
+ "idx": 2,
+ "is_hidden": 0,
+ "label": "Agent Roster",
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agentroster",
+ "name": "Agent Roster",
+ "number_cards": [
+  {"label": "Agents Onboarding", "number_card_name": "Agents Onboarding"},
+  {"label": "Awaiting Approval", "number_card_name": "Awaiting Approval"},
+  {"label": "Active Agents", "number_card_name": "Active Agents"},
+  {"label": "Re-ack Required", "number_card_name": "Re-ack Required"},
+  {"label": "Agents Offboarding", "number_card_name": "Agents Offboarding"}
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 9.0,
+ "shortcuts": [
+  {"color": "Blue", "label": "Agents List", "link_to": "Employee", "type": "DocType"},
+  {"color": "Green", "label": "Add Agent", "link_to": "/app/employee/new?worker_type=Agent", "type": "URL"},
+  {"color": "Orange", "label": "Policy Documents", "link_to": "Policy Document", "type": "DocType"},
+  {"color": "Purple", "label": "Agent Tools", "link_to": "Agent Tool", "type": "DocType"},
+  {"color": "Red", "label": "Acknowledgements", "link_to": "Agent Policy Acknowledgement", "type": "DocType"},
+  {"color": "Grey", "label": "Onboarding Template", "link_to": "Employee Onboarding Template", "type": "DocType"}
+ ],
+ "standard": 1,
+ "sidebar_items": [
+  {"child": 0, "collapsible": 1, "icon": "bot", "indent": 0, "keep_closed": 0, "label": "Home", "link_to": "Agent Roster", "link_type": "Workspace", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "user", "indent": 0, "keep_closed": 0, "label": "Agents", "link_to": "Employee", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "file-check", "indent": 0, "keep_closed": 0, "label": "Policy Documents", "link_to": "Policy Document", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "sign", "indent": 0, "keep_closed": 0, "label": "Acknowledgements", "link_to": "Agent Policy Acknowledgement", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "cpu", "indent": 0, "keep_closed": 0, "label": "Agent Tools", "link_to": "Agent Tool", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "clipboard-list", "indent": 0, "keep_closed": 0, "label": "Onboarding", "link_to": "Employee Onboarding", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "logout", "indent": 0, "keep_closed": 0, "label": "Separation", "link_to": "Employee Separation", "link_type": "DocType", "type": "Link"}
+ ],
+ "title": "Agent Roster",
+ "type": "Workspace"
+}

@@ -255,6 +255,48 @@ def send_policy_quiz(employee: str, ack_name: str):
 
 
 @frappe.whitelist()
+def send_tool_invites(employee: str):
+	"""Mark every not-started Tool Invite row as Invited (locked until acks) and email the notices."""
+	emp = frappe.get_doc("Employee", employee)
+	if not is_agent(emp):
+		frappe.throw(_("Not an agent"))
+	if not acks_exist(employee):
+		frappe.throw(_("Policies must be acknowledged first"))
+	onboarding_name = _get_active_onboarding(employee)
+	if not onboarding_name:
+		frappe.throw(_("No active onboarding for this agent"))
+	doc = frappe.get_doc("Employee Onboarding", onboarding_name)
+	sent = []
+	for row in doc.activities:
+		if (row.activity_kind or "") == "Tool Invite" and (row.access_status or "Not started") == "Not started":
+			row.access_status = "Invited"
+			sent.append(row)
+	doc.flags.from_agentroster = True
+	doc.save(ignore_permissions=True)
+	for row in sent:
+		from my_hr_app.agentroster import mail
+
+		mail.send_tool_invite_notice(emp, row)
+	frappe.db.commit()
+	frappe.msgprint(
+		_("Tool invite notices sent to {0}: {1}").format(emp.agent_email, ", ".join(r.agent_tool for r in sent))
+	)
+	return [r.name for r in sent]
+
+
+@frappe.whitelist()
+def verify_tool_row(employee: str, row_name: str):
+	"""Manager verifies an Accepted row with evidence."""
+	doc = frappe.get_doc("Employee Boarding Activity", row_name, parenttype="Employee Onboarding")
+	if (doc.access_status or "") != "Accepted":
+		frappe.throw(_("Only Accepted rows can be verified"))
+	doc.access_status = "Verified"
+	doc.flags.from_agentroster = True
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+
+
+@frappe.whitelist()
 def start_first_assignment(employee: str, subject: str, description: str, acceptance: str | None = None):
 	"""Create the first-assignment Task, email it to the agent, and move status."""
 	emp = frappe.get_doc("Employee", employee)

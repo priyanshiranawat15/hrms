@@ -86,6 +86,46 @@ def setup_agentroster():
 	create_email_templates()
 	create_boarding_templates()
 	create_dev_email_account()
+	create_number_cards()
+
+
+def create_number_cards():
+	cards = [
+		(
+			"Agents Onboarding",
+			[
+				["Employee", "worker_type", "=", "Agent"],
+				[
+					"Employee",
+					"agent_status",
+					"in",
+					["Policies Sent", "Policies Acknowledged", "Tool Access", "Ready for Assignment", "First Assignment"],
+				],
+			],
+		),
+		("Awaiting Approval", [["Employee", "worker_type", "=", "Agent"], ["Employee", "agent_status", "=", "Awaiting Approval"]]),
+		("Active Agents", [["Employee", "worker_type", "=", "Agent"], ["Employee", "agent_status", "=", "Active"]]),
+		("Re-ack Required", [["Employee", "worker_type", "=", "Agent"], ["Employee", "policy_ack_status", "=", "Re-ack Required"]]),
+		("Agents Offboarding", [["Employee", "worker_type", "=", "Agent"], ["Employee", "agent_status", "=", "Offboarding"]]),
+	]
+	import json as _json
+
+	for label, filters in cards:
+		if frappe.db.exists("Number Card", label):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Number Card",
+				"label": label,
+				"document_type": "Employee",
+				"function": "Count",
+				"type": "Document Type",
+				"is_public": 1,
+				"is_standard": 1,
+				"module": "Agentroster",
+				"filters_json": _json.dumps(filters),
+			}
+		).insert(ignore_permissions=True)
 
 
 def create_dev_email_account():

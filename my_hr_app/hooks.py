@@ -57,6 +57,7 @@ doctype_js = {
 	"Job Applicant": "public/js/job_applicant.js",
 	"Job Offer": "public/js/job_offer.js",
 	"Employee": "public/js/employee.js",
+	"Employee Onboarding": "public/js/employee_onboarding.js",
 }
 doctype_list_js = {"Employee": "public/js/employee_list.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
