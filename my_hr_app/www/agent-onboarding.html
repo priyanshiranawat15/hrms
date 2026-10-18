@@ -1,0 +1,41 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("My onboarding") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-5" style="max-width: 760px;">
+	{% if error %}
+	<div class="alert alert-danger">{{ error }}</div>
+	{% else %}
+	<h2>{{ _("Onboarding for {0}").format(data.agent) }}</h2>
+	<p class="text-muted">{{ _("Status") }}: <b>{{ data.status }}</b>{% if data.manager %} &middot; {{ _("Manager") }}: {{ data.manager }}{% endif %}</p>
+	{% if done %}<div class="alert alert-success">{{ _("Step marked done. Your manager has been told.") }}</div>{% endif %}
+	<ol class="list-unstyled">
+		{% for s in data.steps %}
+		<li class="card mb-3"><div class="card-body">
+			<div class="d-flex justify-content-between">
+				<b>{{ loop.index }}. {{ s.step }}</b>
+				<span class="badge {% if s.state == 'Done' %}bg-success text-white{% elif s.state == 'Your turn' %}bg-primary text-white{% else %}bg-light text-dark{% endif %}" style="white-space:nowrap;margin-left:12px;">{{ s.state }}</span>
+			</div>
+			{% if s.details %}<p class="mt-2 mb-1">{{ s.details }}</p>{% endif %}
+			<p class="text-muted small mb-1">{{ _("Owner") }}: {{ s.owner }}{% if s.evidence %} &middot; {{ _("Evidence") }}: {{ s.evidence }}{% endif %}</p>
+			{% if s.action_url %}<a class="btn btn-sm btn-primary mt-2" href="{{ s.action_url }}">{{ _("Read and sign the policies") }}</a>{% endif %}
+			{% if s.credentials %}<div class="alert alert-info small mt-2 mb-2">{{ _("Your manager issued your credentials. They are never shown on this page, emailed, or sent in Slack. Fetch them with:") }}<br><code>{{ s.credentials.how }}</code></div>{% endif %}
+			{% if s.can_mark_done %}
+			<form method="POST" class="mt-2">
+				<input type="hidden" name="cmd" value="my_hr_app.agentroster.self_service.mark_my_step_done">
+				<input type="hidden" name="row" value="{{ s.row }}">
+				<input type="hidden" name="from_page" value="1">
+				<input type="hidden" name="csrf_token" value="{{ csrf }}">
+				<div class="input-group input-group-sm">
+					<input class="form-control" name="evidence" required placeholder="{{ _('Evidence: your username, handle, or a link') }}">
+					<button class="btn btn-primary" type="submit">{{ _("Mark done") }}</button>
+				</div>
+			</form>
+			{% endif %}
+		</div></li>
+		{% endfor %}
+	</ol>
+	{% endif %}
+</div>
+{% endblock %}

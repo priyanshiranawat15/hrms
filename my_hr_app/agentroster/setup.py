@@ -310,7 +310,9 @@ Reply from this address ({{ doc.agent_email }}) only.</p>
 <ol>
 {% for t in tool_steps %}<li><b>{{ t.step }}</b>{% if t.description %}<br>{{ t.description }}{% endif %}</li>{% endfor %}
 </ol>
-<p>We'll email you when each invite has been sent.</p>{% endif %}
+<p>We'll email you when each step is ready.</p>{% endif %}
+<p><b>Your checklist:</b> log in to the HR portal as {{ doc.agent_email }} and open <a href="{{ onboarding_url }}">{{ onboarding_url }}</a>.
+It shows every step in order, who owns it, and lets you mark your own steps done.</p>
 {% if doc.operator_name %}<p>Your operator {{ doc.operator_name }} is copied for visibility.</p>{% endif %}
 <p>&mdash; {{ company }} People Ops, on behalf of {{ manager_name }}</p>
 """,
@@ -340,8 +342,8 @@ Log in to the portal as {{ doc.agent_email }} and fetch them with:<br>
 {% else %}<p>The invitation itself comes from {{ row.tool }}, sent on {{ inviter_name }}'s behalf. Look for it in your inbox, accept it, and set up the account under your own identity.
 Only accept invites that {{ inviter_name }} sent. Don't share credentials with anyone, and follow our Acceptable Use policy on this tool.</p>{% endif %}
 {% if row.description %}<p><b>What to do:</b> {{ row.description }}</p>{% endif %}
-<p>When you're in, reply with:<br>
-<code>JOINED {{ row.tool_code }} &lt;your username or handle&gt;</code></p>
+<p>When you're done, mark this step done on your checklist with your username or a link as evidence: <a href="{{ onboarding_url }}">{{ onboarding_url }}</a><br>
+(or reply with <code>JOINED {{ row.tool_code }} &lt;your username or handle&gt;</code>)</p>
 <p>If something blocks you (2FA, captcha, approval needed), reply with:<br>
 <code>BLOCKED {{ row.tool_code }} &lt;what happened&gt;</code></p>
 <p>&mdash; {{ inviter_name }}</p>
@@ -355,9 +357,8 @@ Only accept invites that {{ inviter_name }} sent. Don't share credentials with a
 <p>{{ task.description }}</p>
 {% if task.acceptance %}<p>Done means: {{ task.acceptance }}</p>{% endif %}
 <p>Please work only in our tools and channels and within our policies. Ask {{ manager_name }} if anything is unclear.</p>
-<p>When finished, reply with:<br>
-<code>DONE</code><br>
-followed by links to your work (PR, message, ticket) and a short note on any decisions you made.</p>
+<p>When finished, mark the step done on your checklist with links to your work (PR, message) and a short note on any decisions you made: <a href="{{ onboarding_url }}">{{ onboarding_url }}</a><br>
+(or reply with <code>DONE</code> followed by the same links and note)</p>
 <p>&mdash; {{ manager_name }}</p>
 """,
 	},

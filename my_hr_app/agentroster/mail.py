@@ -54,6 +54,7 @@ def _context(emp, extra=None):
 		else "your manager",
 		"operator_name": emp.operator_name or "",
 		"profile_url": get_url(f"/app/employee/{emp.name}"),
+		"onboarding_url": get_url("/agent-onboarding"),
 	}
 	if extra:
 		ctx.update(extra)
