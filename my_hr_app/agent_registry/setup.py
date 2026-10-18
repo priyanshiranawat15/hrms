@@ -44,6 +44,10 @@ def ensure_agent_registry():
 	ensure_onboarding_template()
 	ensure_workflow()
 	ensure_hiring_links()
+	ensure_add_agent_on_home()
+	from my_hr_app.agent_registry.employee_split import ensure_employee_split
+
+	ensure_employee_split()
 	frappe.clear_cache()
 
 
@@ -185,6 +189,71 @@ def ensure_workflow():
 			},
 		)
 	workflow.insert(ignore_permissions=True)
+
+
+def ensure_add_agent_on_home():
+	"""Show Add Agent beside Add Employee on the HR home onboarding card."""
+	step_name = "Create AI Agent"
+	if not frappe.db.exists("Onboarding Step", step_name):
+		frappe.get_doc(
+			{
+				"doctype": "Onboarding Step",
+				"name": step_name,
+				"title": "Add your agents",
+				"action": "Create Entry",
+				"action_label": "Add Agent",
+				"description": "Name the bot and its email. Saving sends one invite link. The agent sets a password, then signs in.",
+				"reference_document": "AI Agent",
+				"route_options": "",
+				"show_full_form": 0,
+				"validate_action": 1,
+				"is_complete": 0,
+				"is_skipped": 0,
+			}
+		).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value(
+			"Onboarding Step",
+			step_name,
+			{
+				"title": "Add your agents",
+				"action": "Create Entry",
+				"action_label": "Add Agent",
+				"description": "Name the bot and its email. Saving sends one invite link. The agent sets a password, then signs in.",
+				"reference_document": "AI Agent",
+				"route_options": "",
+				"show_full_form": 0,
+			},
+			update_modified=False,
+		)
+
+	if not frappe.db.exists("Module Onboarding", "HR Onboarding"):
+		return
+
+	onboarding = frappe.get_doc("Module Onboarding", "HR Onboarding")
+	if any(row.step == step_name for row in onboarding.steps):
+		return
+
+	rebuilt = []
+	inserted = False
+	for row in onboarding.steps:
+		rebuilt.append({"step": row.step, "is_optional": row.is_optional})
+		if row.step == "Create Employee":
+			rebuilt.append({"step": step_name, "is_optional": 1})
+			inserted = True
+	if not inserted:
+		rebuilt.append({"step": step_name, "is_optional": 1})
+
+	onboarding.steps = []
+	for row in rebuilt:
+		onboarding.append("steps", row)
+	onboarding.flags.ignore_permissions = True
+	previous = frappe.flags.in_import
+	frappe.flags.in_import = True
+	try:
+		onboarding.save(ignore_permissions=True)
+	finally:
+		frappe.flags.in_import = previous
 
 
 def ensure_hiring_links():

@@ -3,22 +3,33 @@
  "creation": "2026-10-17 12:00:00.000000",
  "doctype": "DocType",
  "editable_grid": 1,
+ "quick_entry": 1,
  "engine": "InnoDB",
  "field_order": [
   "identity_section",
   "agent_name",
-  "status",
+  "agent_email",
   "company",
   "department",
   "designation",
   "owner_employee",
+  "status",
+  "identity_column",
   "backup_owner",
   "cost_center",
   "job_opening",
   "job_applicant",
   "job_offer",
   "activation_date",
-  "identity_column",
+  "system_section",
+  "invite_status",
+  "portal_invite_link",
+  "system_user",
+  "invite_sent_on",
+  "invite_expires_on",
+  "invite_key",
+  "api_key",
+  "api_key_issued_on",
   "profile_section",
   "agent_type",
   "vendor",
@@ -37,18 +48,13 @@
   "credential_rotation_due",
   "skills_section",
   "skills",
-  "interaction_policy",
-  "system_section",
-  "system_user",
-  "agent_email",
-  "api_key",
-  "api_key_issued_on"
+  "interaction_policy"
  ],
  "fields": [
   {
    "fieldname": "identity_section",
    "fieldtype": "Section Break",
-   "label": "Workforce Identity"
+   "label": "Agent"
   },
   {
    "fieldname": "agent_name",
@@ -78,13 +84,15 @@
    "fieldname": "department",
    "fieldtype": "Link",
    "label": "Department",
-   "options": "Department"
+   "options": "Department",
+   "allow_in_quick_entry": 1
   },
   {
    "fieldname": "designation",
    "fieldtype": "Link",
    "label": "Designation",
-   "options": "Designation"
+   "options": "Designation",
+   "allow_in_quick_entry": 1
   },
   {
    "fieldname": "owner_employee",
@@ -98,37 +106,43 @@
    "fieldname": "backup_owner",
    "fieldtype": "Link",
    "label": "Backup Owner",
-   "options": "Employee"
+   "options": "Employee",
+   "hidden": 1
   },
   {
    "fieldname": "cost_center",
    "fieldtype": "Link",
    "label": "Cost Center",
-   "options": "Cost Center"
+   "options": "Cost Center",
+   "hidden": 1
   },
   {
    "fieldname": "job_opening",
    "fieldtype": "Link",
    "label": "Job Opening",
-   "options": "Job Opening"
+   "options": "Job Opening",
+   "hidden": 1
   },
   {
    "fieldname": "job_applicant",
    "fieldtype": "Link",
    "label": "Job Applicant",
-   "options": "Job Applicant"
+   "options": "Job Applicant",
+   "hidden": 1
   },
   {
    "fieldname": "job_offer",
    "fieldtype": "Link",
    "label": "Job Offer",
-   "options": "Job Offer"
+   "options": "Job Offer",
+   "hidden": 1
   },
   {
    "fieldname": "activation_date",
    "fieldtype": "Date",
    "label": "Activation Date",
-   "read_only": 1
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "identity_column",
@@ -137,14 +151,14 @@
   {
    "fieldname": "profile_section",
    "fieldtype": "Section Break",
-   "label": "Agent Profile"
+   "label": "Agent Profile",
+   "hidden": 1
   },
   {
    "fieldname": "agent_type",
    "fieldtype": "Select",
    "label": "Agent Type",
    "options": "In-house\nVendor\nPartner\nExternal",
-   "reqd": 1,
    "default": "In-house",
    "in_list_view": 1
   },
@@ -173,7 +187,6 @@
    "fieldtype": "Select",
    "label": "Execution Mode",
    "options": "Delegate\nAmbient",
-   "reqd": 1,
    "default": "Delegate",
    "in_list_view": 1
   },
@@ -208,7 +221,8 @@
   {
    "fieldname": "budget_section",
    "fieldtype": "Section Break",
-   "label": "Budget and Credentials"
+   "label": "Budget and Credentials",
+   "hidden": 1
   },
   {
    "fieldname": "monthly_budget",
@@ -231,7 +245,8 @@
   {
    "fieldname": "skills_section",
    "fieldtype": "Section Break",
-   "label": "Skills and Interaction Policy"
+   "label": "Skills and Interaction Policy",
+   "hidden": 1
   },
   {
    "fieldname": "skills",
@@ -247,9 +262,16 @@
    "description": "Delegate mode: only these roles may ask the agent to act."
   },
   {
+   "fieldname": "agent_email",
+   "fieldtype": "Data",
+   "label": "Agent Email",
+   "allow_in_quick_entry": 1,
+   "description": "The bot signs in with this email. The invite is sent here."
+  },
+  {
    "fieldname": "system_section",
    "fieldtype": "Section Break",
-   "label": "System Identity"
+   "label": "Portal access"
   },
   {
    "fieldname": "system_user",
@@ -259,23 +281,54 @@
    "read_only": 1
   },
   {
-   "fieldname": "agent_email",
-   "fieldtype": "Data",
-   "label": "Agent Email",
+   "fieldname": "invite_status",
+   "fieldtype": "Select",
+   "label": "Invite Status",
+   "options": "Not Sent\nSent\nAccepted",
+   "default": "Not Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "invite_sent_on",
+   "fieldtype": "Datetime",
+   "label": "Invite Sent On",
    "read_only": 1,
-   "description": "Issued by HR. The agent signs in with this email and cannot create the account."
+   "hidden": 1
+  },
+  {
+   "fieldname": "invite_expires_on",
+   "fieldtype": "Datetime",
+   "label": "Invite Expires On",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "portal_invite_link",
+   "fieldtype": "Small Text",
+   "label": "Portal Invite Link",
+   "read_only": 1,
+   "description": "The agent opens this link once, sets a password, and then signs in with its email."
+  },
+  {
+   "fieldname": "invite_key",
+   "fieldtype": "Data",
+   "label": "Invite Key",
+   "hidden": 1,
+   "read_only": 1
   },
   {
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
-   "read_only": 1
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "api_key_issued_on",
    "fieldtype": "Datetime",
    "label": "API Key Issued On",
-   "read_only": 1
+   "read_only": 1,
+   "hidden": 1
   }
  ],
  "links": [
@@ -285,7 +338,7 @@
   {"link_doctype": "Agent Onboarding", "link_fieldname": "ai_agent"},
   {"link_doctype": "Agent Usage Log", "link_fieldname": "ai_agent"}
  ],
- "modified": "2026-10-17 12:00:00.000000",
+ "modified": "2026-10-17 23:20:00.000000",
  "modified_by": "Administrator",
  "module": "Agent Registry",
  "name": "AI Agent",

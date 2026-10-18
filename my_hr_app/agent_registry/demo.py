@@ -9,7 +9,7 @@ from frappe.model.workflow import apply_workflow
 from frappe.utils import add_days, today
 
 from my_hr_app.agent_registry.api import agents_over_budget_count, get_budget_summary
-from my_hr_app.agent_registry.auth import prevent_agent_self_signup
+from my_hr_app.agent_registry.auth import accept_agent_invite, prevent_agent_self_signup
 from my_hr_app.agent_registry.boarding import complete_onboarding_tasks
 
 
@@ -124,14 +124,12 @@ def walk_agent(
 		agent = apply_workflow(frappe.get_doc("AI Agent", agent.name), action)
 
 	agent.reload()
-	user = frappe.get_doc("User", agent.system_user)
 	password = "AgentPortal!" + agent.name
-	user.flags.from_agent_registry = True
-	user.new_password = password
-	user.save(ignore_permissions=True)
-	user.reload()
-	api_key = user.api_key
-	api_secret = user.get_password("api_secret")
+	signed_up = accept_agent_invite(agent.invite_key, agent.agent_name, password)
+	agent.reload()
+	user = frappe.get_doc("User", agent.system_user)
+	api_key = signed_up["api_key"]
+	api_secret = signed_up["api_secret"]
 
 	login_status = http_status(
 		"/api/method/login",
@@ -239,6 +237,11 @@ def assert_signup_blocked():
 	doc.user_type = "Agent System User"
 	try:
 		prevent_agent_self_signup(doc)
+		return False
+	except frappe.ValidationError:
+		pass
+	try:
+		accept_agent_invite("not-a-real-invite", "Rogue", "longpassword")
 	except frappe.ValidationError:
 		return True
 	return False

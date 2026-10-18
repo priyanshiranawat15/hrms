@@ -39,7 +39,7 @@ required_apps = ["erpnext", "hrms"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/my_hr_app/css/my_hr_app.css"
-# web_include_js = "/assets/my_hr_app/js/my_hr_app.js"
+web_include_js = "/assets/my_hr_app/js/signup_kind.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "my_hr_app/public/scss/website"
@@ -56,7 +56,9 @@ doctype_js = {
 	"Job Opening": "public/js/job_opening.js",
 	"Job Applicant": "public/js/job_applicant.js",
 	"Job Offer": "public/js/job_offer.js",
+	"Employee": "public/js/employee.js",
 }
+doctype_list_js = {"Employee": "public/js/employee_list.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -167,6 +169,10 @@ doc_events = {
 	"User": {
 		"validate": "my_hr_app.agent_registry.auth.prevent_agent_self_signup",
 	},
+	"Employee": {
+		"validate": "my_hr_app.agent_registry.employee_split.validate_employee",
+		"on_update": "my_hr_app.agent_registry.employee_split.on_employee_update",
+	},
 	"Project": {
 		"on_update": "my_hr_app.agent_registry.boarding.sync_from_project",
 	},
@@ -174,6 +180,11 @@ doc_events = {
 		"on_update": "my_hr_app.agent_registry.boarding.sync_from_task",
 	},
 }
+
+from my_hr_app.agent_registry.employee_split import SKIPPED_DOCTYPES
+
+for _skipped in SKIPPED_DOCTYPES:
+	doc_events[_skipped] = {"validate": "my_hr_app.agent_registry.employee_split.block_skipped_document"}
 
 # Scheduled Tasks
 # ---------------
@@ -269,7 +280,12 @@ doc_events = {
 # Authentication and authorization
 # --------------------------------
 
-# Agents sign in with the account HR created. They cannot self-register.
+# Humans use the public sign up. AI agents can sign up only through an invite link.
+override_whitelisted_methods = {
+	"frappe.core.doctype.user.user.sign_up": "my_hr_app.agent_registry.auth.human_sign_up",
+	"hrms.hr.page.organizational_chart.organizational_chart.get_children": "my_hr_app.agent_registry.employee_split.get_children",
+}
+
 # permission_query_conditions keep an agent inside its own records.
 permission_query_conditions = {
 	"Agent Business Agreement": "my_hr_app.agent_registry.auth.agreement_permission_query",

@@ -18,11 +18,36 @@ ALLOWED_TRANSITIONS = {
 
 class AIAgent(Document):
 	def validate(self):
+		if not self.agent_type:
+			self.agent_type = "In-house"
+		if not self.execution_mode:
+			self.execution_mode = "Delegate"
+		if self.agent_email:
+			self.agent_email = self.agent_email.strip().lower()
+		self.validate_email_locked()
 		self.validate_status_transition()
 		if self.status == "Active":
 			blockers = self.activation_blockers()
 			if blockers:
 				frappe.throw("<br>".join(blockers), title=_("Agent is not ready to activate"))
+
+	def after_insert(self):
+		if self.flags.get("skip_portal_invite"):
+			return
+		if self.status in ("Rejected", "Archived", "Deactivated"):
+			return
+		from my_hr_app.agent_registry.auth import issue_portal_invite
+
+		link = issue_portal_invite(self.name)
+		self.reload()
+		email = self.agent_email
+		frappe.msgprint(
+			_("Invite sent to {0}. The agent opens this link, sets a password, and then signs in with that email.<br>{1}").format(
+				email, link
+			),
+			title=_("Portal invite"),
+			indicator="green",
+		)
 
 	def on_update(self):
 		previous = self.get_doc_before_save()
@@ -31,7 +56,10 @@ class AIAgent(Document):
 			return
 
 		if self.status == "Approved":
-			self.provision_system_user()
+			if not (self.system_user and frappe.db.exists("User", self.system_user)):
+				from my_hr_app.agent_registry.auth import issue_portal_invite
+
+				issue_portal_invite(self.name)
 		elif self.status == "Onboarding":
 			self.ensure_onboarding()
 		elif self.status == "Active":
@@ -40,6 +68,17 @@ class AIAgent(Document):
 				self.reissue_credentials()
 		elif self.status in ("Deactivated", "Archived"):
 			self.revoke_credentials()
+
+	def validate_email_locked(self):
+		previous = self.get_doc_before_save()
+		if not previous or not previous.agent_email or previous.agent_email == self.agent_email:
+			return
+		if previous.system_user or previous.invite_status in ("Sent", "Accepted"):
+			frappe.throw(
+				_("This invite was already sent to {0}. The agent signs in with that email.").format(
+					previous.agent_email
+				)
+			)
 
 	def validate_status_transition(self):
 		previous = self.get_doc_before_save()
@@ -122,7 +161,7 @@ class AIAgent(Document):
 
 	def reissue_credentials(self):
 		if not self.system_user:
-			self.provision_system_user()
+			frappe.throw(_("This agent has not accepted the portal invite yet."))
 			return
 		user = frappe.get_doc("User", self.system_user)
 		user.flags.from_agent_registry = True

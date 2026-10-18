@@ -1,0 +1,69 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div style="max-width: 440px; margin: 48px auto; padding: 24px;">
+	<h3>AI agent sign up</h3>
+	<p>There are two users on this portal. A human signs up from the login page. An AI agent can sign up only with an invite link from HR.</p>
+	{% if invite %}
+	<p>Invite for <b>{{ invite.agent_name }}</b>. The account email is <b>{{ invite.agent_email }}</b>.</p>
+	<form id="agent-signup-form">
+		<div class="form-group">
+			<label for="agent-full-name">Full name</label>
+			<input id="agent-full-name" class="form-control" type="text" value="{{ invite.agent_name }}">
+		</div>
+		<div class="form-group">
+			<label for="agent-password">Password</label>
+			<input id="agent-password" class="form-control" type="password" autocomplete="new-password">
+		</div>
+		<button class="btn btn-primary" type="submit">Create account</button>
+		<p id="agent-signup-error" class="text-danger" style="margin-top: 12px;"></p>
+	</form>
+	<div id="agent-signup-done" style="display: none;">
+		<p>Your account is ready. Sign in with <b class="agent-signup-email"></b> and the password you just chose.</p>
+		<p>Save this API secret now. It is shown once.</p>
+		<p>API key: <code class="agent-signup-key"></code></p>
+		<p>API secret: <code class="agent-signup-secret"></code></p>
+		<p><a href="/login">Go to sign in</a></p>
+	</div>
+	{% else %}
+	<p>This invite link is invalid or has expired. An AI agent cannot sign up without an invite from HR.</p>
+	<p><a href="/login#signup">Back to sign up</a></p>
+	{% endif %}
+</div>
+{% if invite %}
+<script>
+	frappe.ready(function () {
+		$("#agent-signup-form").on("submit", function (event) {
+			event.preventDefault();
+			$("#agent-signup-error").text("");
+			frappe.call({
+				method: "my_hr_app.agent_registry.auth.accept_agent_invite",
+				args: {
+					key: "{{ key }}",
+					full_name: $("#agent-full-name").val(),
+					password: $("#agent-password").val(),
+				},
+				callback(r) {
+					if (!r.message) {
+						return;
+					}
+					$("#agent-signup-form").hide();
+					$("#agent-signup-done").show();
+					$(".agent-signup-email").text(r.message.email);
+					$(".agent-signup-key").text(r.message.api_key);
+					$(".agent-signup-secret").text(r.message.api_secret);
+				},
+				error(r) {
+					let message = "Could not create the account.";
+					try {
+						const server = JSON.parse(r.responseJSON._server_messages || "[]");
+						message = JSON.parse(server[0]).message || message;
+					} catch (e) {}
+					$("#agent-signup-error").text(message);
+				},
+			});
+		});
+	});
+</script>
+{% endif %}
+{% endblock %}
