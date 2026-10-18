@@ -132,7 +132,13 @@ def accept_agent_invite(key, full_name, password):
 		user.flags.from_agent_invite = True
 		user.flags.no_welcome_mail = True
 		user.flags.ignore_password_policy = True
-		user.insert(ignore_permissions=True)
+		# The AI Agent is linked to this user right below; mute the core User Type
+		# notice ("kindly set the System User field") that fires before the link exists.
+		frappe.flags.mute_messages = True
+		try:
+			user.insert(ignore_permissions=True)
+		finally:
+			frappe.flags.mute_messages = False
 
 		agent = frappe.get_doc("AI Agent", row.name)
 		agent.db_set(

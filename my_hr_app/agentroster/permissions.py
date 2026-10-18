@@ -35,7 +35,8 @@ def permission_query_conditions(user: str | None = None) -> str:
 
 def has_permission(doc, ptype=None, user=None) -> bool:
 	user = user or frappe.session.user
-	if frappe.has_role(user, "HR Manager") or frappe.has_role(user, "HR User"):
+	# frappe v16 has no frappe.has_role; check the user's roles directly.
+	if {"HR Manager", "HR User", "System Manager"} & set(frappe.get_roles(user)):
 		return True
 	if not is_agent_manager(user):
 		return False
