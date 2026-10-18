@@ -16,4 +16,7 @@ def get_context(context):
 		return
 	context.data = build_checklist(frappe.get_doc("Employee", emp))
 	context.done = frappe.form_dict.get("done") == "1"
-	context.csrf = frappe.sessions.get_csrf_token()
+	try:
+		context.csrf = frappe.sessions.get_csrf_token()
+	except Exception:
+		context.csrf = (frappe.session.data or {}).get("csrf_token") or ""
