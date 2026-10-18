@@ -1,0 +1,23 @@
+{
+ "chart_name": "Agents by Execution Mode",
+ "chart_type": "Group By",
+ "creation": "2026-10-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "AI Agent",
+ "filters_json": "[[\"AI Agent\",\"status\",\"!=\",\"Archived\"]]",
+ "group_by_based_on": "execution_mode",
+ "group_by_type": "Count",
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "Agents by Execution Mode",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Pie"
+}

@@ -1,0 +1,337 @@
+{
+ "actions": [],
+ "creation": "2026-10-17 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "identity_section",
+  "agent_name",
+  "status",
+  "company",
+  "department",
+  "designation",
+  "owner_employee",
+  "backup_owner",
+  "cost_center",
+  "job_opening",
+  "job_applicant",
+  "job_offer",
+  "activation_date",
+  "identity_column",
+  "profile_section",
+  "agent_type",
+  "vendor",
+  "model_provider",
+  "model_name",
+  "version",
+  "execution_mode",
+  "risk_tier",
+  "handles_pii",
+  "data_region",
+  "allowed_hours",
+  "profile_column",
+  "budget_section",
+  "monthly_budget",
+  "budget_unit",
+  "credential_rotation_due",
+  "skills_section",
+  "skills",
+  "interaction_policy",
+  "system_section",
+  "system_user",
+  "agent_email",
+  "api_key",
+  "api_key_issued_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "identity_section",
+   "fieldtype": "Section Break",
+   "label": "Workforce Identity"
+  },
+  {
+   "fieldname": "agent_name",
+   "fieldtype": "Data",
+   "label": "Agent Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Requested\nUnder Review\nApproved\nOnboarding\nActive\nDeactivated\nArchived\nRejected",
+   "default": "Requested",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation"
+  },
+  {
+   "fieldname": "owner_employee",
+   "fieldtype": "Link",
+   "label": "Owner",
+   "options": "Employee",
+   "reqd": 1,
+   "description": "Every agent has a human owner."
+  },
+  {
+   "fieldname": "backup_owner",
+   "fieldtype": "Link",
+   "label": "Backup Owner",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "job_opening",
+   "fieldtype": "Link",
+   "label": "Job Opening",
+   "options": "Job Opening"
+  },
+  {
+   "fieldname": "job_applicant",
+   "fieldtype": "Link",
+   "label": "Job Applicant",
+   "options": "Job Applicant"
+  },
+  {
+   "fieldname": "job_offer",
+   "fieldtype": "Link",
+   "label": "Job Offer",
+   "options": "Job Offer"
+  },
+  {
+   "fieldname": "activation_date",
+   "fieldtype": "Date",
+   "label": "Activation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "profile_section",
+   "fieldtype": "Section Break",
+   "label": "Agent Profile"
+  },
+  {
+   "fieldname": "agent_type",
+   "fieldtype": "Select",
+   "label": "Agent Type",
+   "options": "In-house\nVendor\nPartner\nExternal",
+   "reqd": 1,
+   "default": "In-house",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Data",
+   "label": "Vendor"
+  },
+  {
+   "fieldname": "model_provider",
+   "fieldtype": "Data",
+   "label": "Model Provider"
+  },
+  {
+   "fieldname": "model_name",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "label": "Version"
+  },
+  {
+   "fieldname": "execution_mode",
+   "fieldtype": "Select",
+   "label": "Execution Mode",
+   "options": "Delegate\nAmbient",
+   "reqd": 1,
+   "default": "Delegate",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "risk_tier",
+   "fieldtype": "Select",
+   "label": "Risk Tier",
+   "options": "Low\nMedium\nHigh",
+   "default": "Medium",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "handles_pii",
+   "fieldtype": "Check",
+   "label": "Handles PII"
+  },
+  {
+   "fieldname": "data_region",
+   "fieldtype": "Data",
+   "label": "Data Region"
+  },
+  {
+   "fieldname": "allowed_hours",
+   "fieldtype": "Data",
+   "label": "Allowed Hours",
+   "description": "Example: Weekdays 09:00-18:00"
+  },
+  {
+   "fieldname": "profile_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "budget_section",
+   "fieldtype": "Section Break",
+   "label": "Budget and Credentials"
+  },
+  {
+   "fieldname": "monthly_budget",
+   "fieldtype": "Currency",
+   "label": "Monthly Budget",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "budget_unit",
+   "fieldtype": "Select",
+   "label": "Budget Unit",
+   "options": "USD\nTokens",
+   "default": "USD"
+  },
+  {
+   "fieldname": "credential_rotation_due",
+   "fieldtype": "Date",
+   "label": "Credential Rotation Due"
+  },
+  {
+   "fieldname": "skills_section",
+   "fieldtype": "Section Break",
+   "label": "Skills and Interaction Policy"
+  },
+  {
+   "fieldname": "skills",
+   "fieldtype": "Table",
+   "label": "Skills",
+   "options": "Agent Skill"
+  },
+  {
+   "fieldname": "interaction_policy",
+   "fieldtype": "Table",
+   "label": "Who May Invoke",
+   "options": "Agent Interaction Rule",
+   "description": "Delegate mode: only these roles may ask the agent to act."
+  },
+  {
+   "fieldname": "system_section",
+   "fieldtype": "Section Break",
+   "label": "System Identity"
+  },
+  {
+   "fieldname": "system_user",
+   "fieldtype": "Link",
+   "label": "System User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "agent_email",
+   "fieldtype": "Data",
+   "label": "Agent Email",
+   "read_only": 1,
+   "description": "Issued by HR. The agent signs in with this email and cannot create the account."
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "api_key_issued_on",
+   "fieldtype": "Datetime",
+   "label": "API Key Issued On",
+   "read_only": 1
+  }
+ ],
+ "links": [
+  {"link_doctype": "Agent Business Agreement", "link_fieldname": "ai_agent"},
+  {"link_doctype": "Agent SOP", "link_fieldname": "ai_agent"},
+  {"link_doctype": "Agent Access Policy", "link_fieldname": "ai_agent"},
+  {"link_doctype": "Agent Onboarding", "link_fieldname": "ai_agent"},
+  {"link_doctype": "Agent Usage Log", "link_fieldname": "ai_agent"}
+ ],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "AI Agent",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "AGT-.####",
+ "naming_rule": "Expression",
+ "title_field": "agent_name",
+ "search_fields": "agent_name,agent_email,status"
+}

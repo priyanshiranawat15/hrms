@@ -8,7 +8,7 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["erpnext", "hrms"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -52,7 +52,11 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Job Opening": "public/js/job_opening.js",
+	"Job Applicant": "public/js/job_applicant.js",
+	"Job Offer": "public/js/job_offer.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -95,8 +99,8 @@ app_license = "mit"
 # Installation
 # ------------
 
-# before_install = "my_hr_app.install.before_install"
-# after_install = "my_hr_app.install.after_install"
+after_install = "my_hr_app.agent_registry.setup.ensure_agent_registry"
+after_migrate = ["my_hr_app.agent_registry.setup.ensure_agent_registry"]
 
 # Uninstallation
 # ------------
@@ -159,13 +163,17 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"User": {
+		"validate": "my_hr_app.agent_registry.auth.prevent_agent_self_signup",
+	},
+	"Project": {
+		"on_update": "my_hr_app.agent_registry.boarding.sync_from_project",
+	},
+	"Task": {
+		"on_update": "my_hr_app.agent_registry.boarding.sync_from_task",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
@@ -261,9 +269,15 @@ app_license = "mit"
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"my_hr_app.auth.validate"
-# ]
+# Agents sign in with the account HR created. They cannot self-register.
+# permission_query_conditions keep an agent inside its own records.
+permission_query_conditions = {
+	"Agent Business Agreement": "my_hr_app.agent_registry.auth.agreement_permission_query",
+	"Agent SOP": "my_hr_app.agent_registry.auth.sop_permission_query",
+	"Agent Access Policy": "my_hr_app.agent_registry.auth.access_policy_permission_query",
+	"Agent Onboarding": "my_hr_app.agent_registry.auth.onboarding_permission_query",
+	"Agent Usage Log": "my_hr_app.agent_registry.auth.usage_permission_query",
+}
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True

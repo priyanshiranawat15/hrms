@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "creation": "2026-10-17 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ai_agent",
+  "accountable_owner",
+  "valid_till",
+  "signed_by_owner",
+  "approved_by",
+  "terms_section",
+  "liability_clause",
+  "data_handling_terms",
+  "vendor_terms",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "ai_agent",
+   "fieldtype": "Link",
+   "label": "AI Agent",
+   "options": "AI Agent",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "accountable_owner",
+   "fieldtype": "Link",
+   "label": "Accountable Owner",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_till",
+   "fieldtype": "Date",
+   "label": "Valid Till"
+  },
+  {
+   "fieldname": "signed_by_owner",
+   "fieldtype": "Check",
+   "label": "Signed by Owner"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User"
+  },
+  {
+   "fieldname": "terms_section",
+   "fieldtype": "Section Break",
+   "label": "Terms"
+  },
+  {
+   "fieldname": "liability_clause",
+   "fieldtype": "Text Editor",
+   "label": "Liability"
+  },
+  {
+   "fieldname": "data_handling_terms",
+   "fieldtype": "Text Editor",
+   "label": "Data Handling"
+  },
+  {
+   "fieldname": "vendor_terms",
+   "fieldtype": "Text Editor",
+   "label": "Vendor Terms"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Agent Business Agreement",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "Agent Business Agreement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "submit": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "is_submittable": 1,
+ "autoname": "ABA-.####",
+ "naming_rule": "Expression"
+}

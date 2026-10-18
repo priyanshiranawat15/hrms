@@ -1,0 +1,22 @@
+{
+ "add_total_row": 0,
+ "apply_user_permissions": 1,
+ "creation": "2026-10-17 12:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "is_standard": "Yes",
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "Agent Audit",
+ "owner": "Administrator",
+ "ref_doctype": "AI Agent",
+ "report_name": "Agent Audit",
+ "report_type": "Script Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "HR Manager"},
+  {"role": "HR User"}
+ ]
+}

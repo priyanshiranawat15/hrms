@@ -1,0 +1,17 @@
+{
+ "creation": "2026-10-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "AI Agent",
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Agents Over Budget",
+ "method": "my_hr_app.agent_registry.api.agents_over_budget_count",
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "Agents Over Budget",
+ "owner": "Administrator",
+ "show_percentage_stats": 0,
+ "type": "Custom"
+}

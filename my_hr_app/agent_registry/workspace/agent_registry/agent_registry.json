@@ -1,0 +1,52 @@
+{
+ "app": "my_hr_app",
+ "charts": [
+  {"chart_name": "Agents by Status", "label": "Agents by Status"},
+  {"chart_name": "Agents by Execution Mode", "label": "Agents by Execution Mode"},
+  {"chart_name": "Agent Spend", "label": "Agent Spend"}
+ ],
+ "content": "[{\"id\":\"agenthdr\",\"type\":\"header\",\"data\":{\"text\":\"Agent System of Record\",\"col\":12}},{\"id\":\"agentc1\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Agents by Status\",\"col\":6}},{\"id\":\"agentc2\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Agents by Execution Mode\",\"col\":6}},{\"id\":\"agentc3\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Agent Spend\",\"col\":12}},{\"id\":\"agentn1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Agents\",\"col\":2}},{\"id\":\"agentn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Agent Approvals\",\"col\":2}},{\"id\":\"agentn3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Agents Over Budget\",\"col\":3}},{\"id\":\"agentn4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"High-Risk Agents\",\"col\":2}},{\"id\":\"agentn5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Credentials Due for Rotation\",\"col\":3}}]",
+ "creation": "2026-10-17 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "bot",
+ "idx": 1,
+ "is_hidden": 1,
+ "label": "Agent Registry",
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agent Registry",
+ "name": "Agent Registry",
+ "number_cards": [
+  {"label": "Active Agents", "number_card_name": "Active Agents"},
+  {"label": "Pending Agent Approvals", "number_card_name": "Pending Agent Approvals"},
+  {"label": "Agents Over Budget", "number_card_name": "Agents Over Budget"},
+  {"label": "High-Risk Agents", "number_card_name": "High-Risk Agents"},
+  {"label": "Credentials Due for Rotation", "number_card_name": "Credentials Due for Rotation"}
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 8.0,
+ "shortcuts": [],
+ "standard": 1,
+ "sidebar_items": [
+  {"child": 0, "collapsible": 1, "icon": "bot", "indent": 0, "keep_closed": 0, "label": "Home", "link_to": "Agent Registry", "link_type": "Workspace", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "cpu", "indent": 0, "keep_closed": 0, "label": "AI Agent", "link_to": "AI Agent", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "file-check", "indent": 0, "keep_closed": 0, "label": "Business Agreement", "link_to": "Agent Business Agreement", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "scroll-text", "indent": 0, "keep_closed": 0, "label": "SOP", "link_to": "Agent SOP", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "shield", "indent": 0, "keep_closed": 0, "label": "Access Policy", "link_to": "Agent Access Policy", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "list-checks", "indent": 0, "keep_closed": 0, "label": "Onboarding", "link_to": "Agent Onboarding", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "clipboard-list", "indent": 0, "keep_closed": 0, "label": "Onboarding Template", "link_to": "Agent Onboarding Template", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "chart-column", "indent": 0, "keep_closed": 0, "label": "Usage Log", "link_to": "Agent Usage Log", "link_type": "DocType", "type": "Link"},
+  {"child": 0, "collapsible": 1, "icon": "scan-search", "indent": 0, "keep_closed": 0, "label": "Agent Audit", "link_to": "Agent Audit", "link_type": "Report", "type": "Link"}
+ ],
+ "title": "Agent Registry",
+ "type": "Workspace"
+}
