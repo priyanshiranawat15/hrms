@@ -62,6 +62,44 @@ def transition_allowed(old: str | None, new: str | None) -> bool:
 	return new in ALLOWED_TRANSITIONS.get(old, set())
 
 
+HUMAN_HR_ROLES = {"System Manager", "HR Manager", "HR User"}
+
+
+def require_human_manager(emp):
+	"""Lifecycle buttons are for humans: HR, or the agent's own manager. Never the agent itself."""
+	user = frappe.session.user
+	if user == "Administrator":
+		return
+	if emp.get("user_id") and user == emp.user_id:
+		frappe.throw(
+			_("An agent can't move its own onboarding or approval. A human manager has to do this."),
+			frappe.PermissionError,
+		)
+	if HUMAN_HR_ROLES & set(frappe.get_roles(user)):
+		return
+	manager_users = {
+		frappe.db.get_value("Employee", e, "user_id")
+		for e in (emp.get("reports_to"), emp.get("inviting_manager"))
+		if e
+	}
+	if user in manager_users:
+		return
+	frappe.throw(_("Only HR or {0}'s manager can do this").format(emp.employee_name), frappe.PermissionError)
+
+
+def manager_user(emp) -> str | None:
+	"""The User of the agent's manager (reports_to, else inviting manager)."""
+	for e in (emp.get("reports_to"), emp.get("inviting_manager")):
+		if e:
+			user = frappe.db.get_value("Employee", e, "user_id")
+			if user:
+				return user
+	return None
+
+
+TOOL_DONE_STATUSES = ("Accepted", "Verified")
+
+
 def set_agent_status(doc, status: str, save: bool = False):
 	"""Move an agent's status, raising on an illegal transition. Every move is logged to the timeline (R11)."""
 	old = get_agent_status(doc.name) if not doc.is_new() else None
@@ -198,7 +236,7 @@ def on_onboarding_update(doc, method=None):
 	if any(r.get("access_status") == "Invited" for r in rows):
 		set_agent_status(emp, "Tool Access", save=True)
 	tool_rows = [r for r in rows if (r.get("activity_kind") or "") == "Tool Invite"]
-	if tool_rows and all((r.get("access_status") or "") == "Accepted" for r in tool_rows):
+	if tool_rows and all((r.get("access_status") or "") in TOOL_DONE_STATUSES for r in tool_rows):
 		set_agent_status(emp, "Ready for Assignment", save=True)
 
 
@@ -224,6 +262,7 @@ def get_separation_template_name():
 def start_onboarding(employee: str):
 	"""Create the Employee Onboarding from the agent template and send the welcome email."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if get_agent_status(employee) != "Draft":
@@ -242,8 +281,13 @@ def start_onboarding(employee: str):
 	onboarding.date_of_joining = emp.date_of_joining or frappe.utils.today()
 	onboarding.boarding_begins_on = frappe.utils.today()
 	onboarding.notify_users_by_email = 1
+	owner_user = manager_user(emp)
 	for row in template.activities:
-		onboarding.append("activities", row.as_dict() if hasattr(row, "as_dict") else row)
+		values = row.as_dict() if hasattr(row, "as_dict") else dict(row)
+		# the manager sends the tool invites and approves; HR stays on the other rows
+		if owner_user and not values.get("user") and (values.get("activity_kind") or "") in ("Tool Invite", "Approval"):
+			values["user"] = owner_user
+		onboarding.append("activities", values)
 	onboarding.flags.from_agentroster = True
 	onboarding.insert(ignore_permissions=True)
 
@@ -266,6 +310,7 @@ def send_policy_quiz(employee: str, ack_name: str):
 	from my_hr_app.agentroster import mail
 
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	ack = frappe.get_doc("Agent Policy Acknowledgement", ack_name)
 	policy = frappe.get_doc("Policy Document", ack.policy_document)
 	if not policy.quiz_questions:
@@ -278,6 +323,7 @@ def send_policy_quiz(employee: str, ack_name: str):
 def send_tool_invites(employee: str):
 	"""Mark every not-started Tool Invite row as Invited (locked until acks) and email the notices."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if not acks_exist(employee):
@@ -307,13 +353,70 @@ def send_tool_invites(employee: str):
 @frappe.whitelist()
 def verify_tool_row(employee: str, row_name: str):
 	"""Manager verifies an Accepted row with evidence."""
-	doc = frappe.get_doc("Employee Boarding Activity", row_name, parenttype="Employee Onboarding")
-	if (doc.access_status or "") != "Accepted":
+	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
+	parent = frappe.db.get_value("Employee Boarding Activity", row_name, "parent")
+	if not parent or parent != _get_active_onboarding(employee):
+		frappe.throw(_("That row isn't on this agent's onboarding"))
+	doc = frappe.get_doc("Employee Onboarding", parent)
+	row = next(r for r in doc.activities if r.name == row_name)
+	if (row.access_status or "") != "Accepted":
 		frappe.throw(_("Only Accepted rows can be verified"))
-	doc.access_status = "Verified"
+	row.access_status = "Verified"
 	doc.flags.from_agentroster = True
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_tool_rows(employee: str):
+	"""Tool invite rows on the agent's active onboarding, for the Mark Tool Joined dialog."""
+	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
+	onboarding_name = _get_active_onboarding(employee)
+	if not onboarding_name:
+		return []
+	return frappe.get_all(
+		"Employee Boarding Activity",
+		filters={"parent": onboarding_name, "parenttype": "Employee Onboarding", "activity_kind": "Tool Invite"},
+		fields=["name", "activity_name", "agent_tool", "access_status", "evidence", "user"],
+		order_by="idx asc",
+	)
+
+
+@frappe.whitelist()
+def mark_tool_joined(employee: str, row_name: str, evidence: str):
+	"""Manager records that the agent accepted a tool invite (the button version of a JOINED reply)."""
+	emp = frappe.get_doc("Employee", employee)
+	if not is_agent(emp):
+		frappe.throw(_("Not an agent"))
+	require_human_manager(emp)
+	evidence = (evidence or "").strip()
+	if not evidence:
+		frappe.throw(_("Add the agent's username or a link as evidence"))
+	onboarding_name = _get_active_onboarding(employee)
+	if not onboarding_name:
+		frappe.throw(_("No active onboarding for this agent"))
+	doc = frappe.get_doc("Employee Onboarding", onboarding_name)
+	row = next((r for r in doc.activities if r.name == row_name), None)
+	if not row or (row.activity_kind or "") != "Tool Invite":
+		frappe.throw(_("That isn't a tool invite row on this onboarding"))
+	if (row.access_status or "") != "Invited":
+		frappe.throw(_("Send the invite first. This row is {0}").format(row.access_status or "Not started"))
+	row.access_status = "Accepted"
+	row.evidence = evidence
+	doc.flags.from_agentroster = True
+	doc.save(ignore_permissions=True)
+	from my_hr_app.agentroster import mail
+
+	mail.comment(
+		emp,
+		_("{0} joined {1} ({2}), recorded by {3}").format(
+			emp.employee_name, row.agent_tool or row.activity_name, evidence, frappe.session.user
+		),
+	)
+	frappe.db.commit()
+	return get_agent_status(employee)
 
 
 @frappe.whitelist()
@@ -333,6 +436,7 @@ def list_signed_acks(employee: str):
 def start_first_assignment(employee: str, subject: str, description: str, acceptance: str | None = None):
 	"""Create the first-assignment Task, email it to the agent, and move status."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if get_agent_status(employee) != "Ready for Assignment":
@@ -367,6 +471,7 @@ def start_first_assignment(employee: str, subject: str, description: str, accept
 def approve_agent(employee: str, note: str | None = None, approved_via: str = "HRMS button"):
 	"""Approve the agent to Active and close the onboarding."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if get_agent_status(employee) != "Awaiting Approval":
@@ -401,6 +506,7 @@ def approve_agent(employee: str, note: str | None = None, approved_via: str = "H
 def request_changes(employee: str, note: str):
 	"""Send the agent back to First Assignment with the manager's note."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if get_agent_status(employee) != "Awaiting Approval":
 		frappe.throw(_("The agent must be Awaiting Approval first"))
 	set_agent_status(emp, "First Assignment", save=True)
@@ -419,6 +525,7 @@ def suspend_agent(employee: str, reason: str):
 	manager + operator. Offboarding can follow; humans hold the keys.
 	"""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if emp.status in ("Left",):
@@ -454,6 +561,7 @@ def suspend_agent(employee: str, reason: str):
 def resume_agent(employee: str, note: str | None = None):
 	"""Resume a suspended agent after the manager decides it is safe."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	if emp.status != "Suspended":
@@ -476,6 +584,7 @@ def resume_agent(employee: str, note: str | None = None):
 def start_offboarding(employee: str, reason: str | None = None, last_day=None):
 	"""Offboard: create the Employee Separation from the agent template, notify the agent."""
 	emp = frappe.get_doc("Employee", employee)
+	require_human_manager(emp)
 	if not is_agent(emp):
 		frappe.throw(_("Not an agent"))
 	current = get_agent_status(employee)
@@ -575,7 +684,7 @@ def mark_row_accepted(employee: str, tool_code: str, evidence: str, communicatio
 	for row in doc.activities:
 		if row.get("agent_tool") == tool and (row.get("access_status") or "") == "Invited":
 			row.access_status = "Accepted"
-			row.evidence = evidence
+			row.evidence = evidence or _("JOINED {0} (email reply)").format(tool_code)
 			if communication:
 				row.evidence_communication = communication
 			doc.flags.from_agentroster = True
