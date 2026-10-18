@@ -75,6 +75,7 @@ def ensure_agent_user_type():
 			"Agent Access Policy": ["read"],
 			"Agent Onboarding": ["read"],
 			"Agent Usage Log": ["read", "write", "create"],
+			"Policy Document": ["read"],
 			"Company": ["read"],
 		},
 	}

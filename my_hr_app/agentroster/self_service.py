@@ -79,7 +79,8 @@ def build_checklist(emp) -> dict:
 			if r.agent_tool and access == "Invited" and credentials.has_active_credential(emp, r.agent_tool):
 				step["credentials"] = {
 					"ready": True,
-					"how": f"POST {credentials.endpoint_url()} with tool={r.agent_tool} (while logged in as yourself)",
+					"how": f"POST {credentials.endpoint_url()} with tool={r.agent_tool} (while logged in as yourself)"
+					+ (" - returns a short-lived GitHub installation token for the repo (fetch a new one when it expires)" if r.agent_tool == "GitHub" else ""),
 				}
 			previous_tools_done = previous_tools_done and access in DONE
 		elif kind == "First Assignment":
