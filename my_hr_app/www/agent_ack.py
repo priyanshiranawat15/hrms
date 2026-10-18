@@ -62,6 +62,8 @@ def record_ack(summary: str):
 	from my_hr_app.agentroster.agent import get_agent_status, set_agent_status
 
 	if get_agent_status(employee) == "Policies Sent":
+		# the acks above update the Employee row (policy_ack_status), so reload before saving
+		emp.reload()
 		set_agent_status(emp, "Policies Acknowledged", save=True)
 		from my_hr_app.agentroster import mail
 
