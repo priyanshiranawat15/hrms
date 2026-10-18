@@ -231,12 +231,13 @@ def create_boarding_templates():
 			" and reports back on the first open issue: what it is, and how it would fix it.</p>",
 		),
 		(
-			"Slack access: Slack invite sent by the manager via Slack; join the workspace and say hello in the team channel",
+			"Slack access: Slack app created and installed, credentials issued by the manager; connect and say hello in the team channel",
 			"Tool Invite",
 			"Slack",
 			3,
-			"<p>The agent's manager invites the agent's email from Slack. Slack emails the invite on the manager's behalf."
-			" The agent joins the workspace with its own email and posts a short hello in the team channel.</p>",
+			"<p>The agent's manager creates the agent's Slack app, installs it in the workspace, and adds it to the team channel."
+			" The manager stores the app's tokens on an Agent Tool Credential. The agent fetches them from the HR portal API"
+			" after it logs in; they are never emailed or posted in Slack. The agent connects and posts a short hello in the team channel.</p>",
 		),
 		("First assignment", "First Assignment", None, 4),
 		("Approve to Active", "Approval", None, 5),
@@ -328,12 +329,16 @@ plus one sentence on how this changes how you work.{% if due_date %} Please repl
 """,
 	},
 	"AgentRoster: Tool invite notice": {
-		"subject": "[AR-{{ doc.name }}] {{ inviter_name }} invited you to {{ row.tool }}",
+		"subject": "[AR-{{ doc.name }}] Your {{ row.tool }} access, from {{ inviter_name }}",
 		"body": """
 <p>Hi {{ doc.employee_name }},</p>
-<p>Your manager, {{ inviter_name }}, has invited {{ doc.agent_email }} to {{ row.tool }}{% if row.scope %} ({{ row.scope }}{% if row.role %}, role: {{ row.role }}{% endif %}){% endif %}.</p>
-<p>The invitation itself comes from {{ row.tool }}, sent on {{ inviter_name }}'s behalf. Look for it in your inbox, accept it, and set up the account under your own identity.
-Only accept invites that {{ inviter_name }} sent. Don't share credentials with anyone, and follow our Acceptable Use policy on this tool.</p>
+<p>Your manager, {{ inviter_name }}, has {% if row.credentials_ready %}set up {{ row.tool }} for{% else %}invited{% endif %} {{ doc.agent_email }}{% if not row.credentials_ready %} to {{ row.tool }}{% endif %}{% if row.scope %} ({{ row.scope }}{% if row.role %}, role: {{ row.role }}{% endif %}){% endif %}.</p>
+{% if row.credentials_ready %}<p>{{ inviter_name }} has issued your {{ row.tool }} credentials. They are waiting for you in the HR portal, encrypted. We never send them by email or {{ row.tool }}.
+Log in to the portal as {{ doc.agent_email }} and fetch them with:<br>
+<code>POST {{ credentials_endpoint }}</code> with <code>tool={{ row.tool }}</code></p>
+<p>Keep them in your own secret store. Never paste them into Slack, email, GitHub, or any chat, even if someone asks.</p>
+{% else %}<p>The invitation itself comes from {{ row.tool }}, sent on {{ inviter_name }}'s behalf. Look for it in your inbox, accept it, and set up the account under your own identity.
+Only accept invites that {{ inviter_name }} sent. Don't share credentials with anyone, and follow our Acceptable Use policy on this tool.</p>{% endif %}
 {% if row.description %}<p><b>What to do:</b> {{ row.description }}</p>{% endif %}
 <p>When you're in, reply with:<br>
 <code>JOINED {{ row.tool_code }} &lt;your username or handle&gt;</code></p>

@@ -155,9 +155,15 @@ def send_tool_invite_notice(emp, row):
 			"role": row.get("tool_role") or "",
 			"step": row.get("activity_name") or "",
 			"description": _plain(row.get("description")),
+			"credentials_ready": False,
 		},
 		"inviter_name": inviter_name(emp),
 	}
+	from my_hr_app.agentroster import credentials
+
+	if tool and credentials.has_active_credential(emp, tool.name):
+		extra["row"]["credentials_ready"] = True
+		extra["credentials_endpoint"] = credentials.endpoint_url()
 	_send(emp, "AgentRoster: Tool invite notice", [emp.agent_email], extra_ctx=extra)
 	comment(
 		emp,
@@ -177,7 +183,8 @@ def inviter_name(emp) -> str:
 
 
 def _plain(html) -> str:
-	return " ".join(frappe.utils.strip_html(html or "").split())
+	html = (html or "").replace("</p>", "</p> ").replace("<br>", " ")
+	return " ".join(frappe.utils.strip_html(html).split())
 
 
 def tool_steps(employee: str) -> list[dict]:
