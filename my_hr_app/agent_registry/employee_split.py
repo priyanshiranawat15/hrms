@@ -248,6 +248,11 @@ def ensure_agent_employee(agent, user):
 			updates["user_id"] = user.name
 		if agent.agent_email and employee.company_email != agent.agent_email:
 			updates["company_email"] = agent.agent_email
+		if agent.agent_email and employee.get("agent_email") != agent.agent_email:
+			# agentroster validates Employee.agent_email for worker_type 'Agent'
+			updates["agent_email"] = agent.agent_email
+		if agent.owner_employee and not employee.get("inviting_manager"):
+			updates["inviting_manager"] = agent.owner_employee
 		if employee.worker_type != "Agent":
 			updates["worker_type"] = "Agent"
 		if not employee.agent_profile:
@@ -271,6 +276,10 @@ def ensure_agent_employee(agent, user):
 			"agent_profile": agent.name,
 			"user_id": user.name if user else None,
 			"company_email": agent.agent_email,
+			# agentroster (Employee.validate) requires agent_email for worker_type 'Agent'
+			"agent_email": agent.agent_email,
+			"prefered_contact_email": "Company Email",
+			"inviting_manager": agent.owner_employee,
 			"create_user_automatically": 0,
 		}
 	)
