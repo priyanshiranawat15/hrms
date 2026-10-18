@@ -64,7 +64,12 @@ class AgentPolicyAcknowledgement(Document):
 			frappe.throw(_("A note is required when a manager records an acknowledgement"))
 
 	def on_update(self):
-		pass
+		# Signing the last required policy makes the agent's ack status Current
+		# (also clears Re-ack Required after a re-sign). Not set by the quiz.
+		from my_hr_app.agentroster.agent import acks_exist
+
+		if self.employee and not self.superseded and acks_exist(self.employee):
+			frappe.db.set_value("Employee", self.employee, "policy_ack_status", "Current")
 
 	def on_trash(self):
 		frappe.throw(_("Agent Policy Acknowledgements cannot be deleted. Mark superseded instead."))
