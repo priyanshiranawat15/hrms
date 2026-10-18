@@ -103,7 +103,10 @@ doctype_list_js = {"Employee": "public/js/employee_list.js"}
 # ------------
 
 after_install = "my_hr_app.agent_registry.setup.ensure_agent_registry"
-after_migrate = ["my_hr_app.agent_registry.setup.ensure_agent_registry"]
+after_migrate = [
+	"my_hr_app.agent_registry.setup.ensure_agent_registry",
+	"my_hr_app.agentroster.setup.setup_agentroster",
+]
 
 # Uninstallation
 # ------------
@@ -166,7 +169,7 @@ after_migrate = ["my_hr_app.agent_registry.setup.ensure_agent_registry"]
 # ---------------
 # Hook on document methods and events
 
-after_migrate = "my_hr_app.agentroster.setup.setup_agentroster"
+# after_migrate is defined once above (Installation section).
 
 fixtures = [
 	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},

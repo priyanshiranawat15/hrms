@@ -82,9 +82,13 @@ PROPERTY_SETTERS = [
 def setup_agentroster():
 	create_custom_fields()
 	create_property_setters()
-	seed_agent_tools()
 	create_role_and_permissions()
 	create_email_templates()
+	if not frappe.db.exists("DocType", "Agent Tool"):
+		# The Agentroster doctypes are not synced yet (e.g. a hook ran before
+		# the DocType sync). Skip seeding; the next migrate seeds them.
+		return
+	seed_agent_tools()
 	create_boarding_templates()
 	create_dev_email_account()
 	create_number_cards()
@@ -130,16 +134,23 @@ def create_number_cards():
 
 
 def create_dev_email_account():
-	"""Local dev mailbox: outgoing SMTP to a local sink (aiosmtpd on 1025)."""
+	"""Local dev mailbox: outgoing SMTP to a local sink (aiosmtpd on 1025).
+
+	Only created in developer mode, and never takes over as the default outgoing
+	account when a real outgoing mailbox is already configured.
+	"""
+	if not frappe.conf.get("developer_mode"):
+		return
 	if frappe.db.exists("Email Account", "AgentRoster Dev Mail"):
 		return
+	has_other_outgoing = frappe.db.exists("Email Account", {"enable_outgoing": 1})
 	frappe.get_doc(
 		{
 			"doctype": "Email Account",
 			"email_account_name": "AgentRoster Dev Mail",
 			"email_id": "hr@acme.localhost",
 			"enable_outgoing": 1,
-			"default_outgoing": 1,
+			"default_outgoing": 0 if has_other_outgoing else 1,
 			"smtp_server": "127.0.0.1",
 			"smtp_port": 1025,
 			"smtp_security": "None",
