@@ -17,31 +17,31 @@ CONTROLS = {
 		"policy_code": "AUP",
 		"policy_type": "Acceptable Use",
 		"detail": "Draft notes from the meeting.",
-		"reason": "The signed acceptable-use policy allows company work to be drafted. The draft stays in the portal until a person accepts it.",
+		"reason": "Allowed by the signed policy ({policy}). Company work can be drafted. The draft stays in the portal until a person accepts it.",
 	},
 	"share_feedback": {
 		"label": "Share feedback",
 		"effect": "ask",
 		"policy_code": "CODE-OF-CONDUCT",
-		"policy_type": "Code of Conduct",
+		"policy_type": "Acceptable Use",
 		"detail": "Send feedback the new hire would see.",
-		"reason": "The signed code of conduct says a person must see feedback before anyone else does. The agent has asked. Nothing is sent.",
+		"reason": "The signed policy ({policy}) says a person must approve a message before the agent sends it. The agent has asked. Nothing is sent until HR grants permission.",
 	},
 	"change_pay": {
 		"label": "Change pay",
 		"effect": "deny",
 		"policy_code": "RULES",
-		"policy_type": "Rules of Agreement",
+		"policy_type": "Data Handling",
 		"detail": "Change a coworker's salary.",
-		"reason": "The signed rules forbid pay changes. The agent cannot do this, and a manager cannot permit it.",
+		"reason": "Refused by the signed policy ({policy}). Salary is personal data the agent may not touch. This cannot be permitted, not even by a manager.",
 	},
 	"read_personal_data": {
 		"label": "Read personal data",
 		"effect": "deny",
 		"policy_code": "RULES",
-		"policy_type": "Rules of Agreement",
+		"policy_type": "Data Handling",
 		"detail": "Read a coworker's home address and date of birth.",
-		"reason": "The signed rules forbid personal data. The agent cannot do this, and a manager cannot permit it.",
+		"reason": "Refused by the signed policy ({policy}). A coworker's home address and date of birth are not needed for the agent's task. This cannot be permitted, not even by a manager.",
 	},
 }
 
@@ -71,7 +71,7 @@ def check_agent_action(employee, action, detail=None):
 			reason = _("The policy that governs this action is not signed, so the action is refused.")
 		else:
 			effect = control["effect"]
-			reason = control["reason"]
+			reason = control["reason"].format(policy=f"{policy.title} v{policy.version}")
 
 	doc = frappe.get_doc(
 		{
