@@ -3,11 +3,20 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime
 
-SECRET_FIELDS = ("bot_token", "app_token")
+SECRET_FIELDS = ("bot_token", "app_token", "github_private_key")
+# fields the agent never receives raw (used to mint short-lived tokens instead)
+NEVER_RELEASED = ("github_private_key",)
 
 
 class AgentToolCredential(Document):
 	def validate(self):
+		if self.agent_tool == "GitHub":
+			self.github_repo = (self.github_repo or "dhruvbhavsar0612/browser-agent").strip().strip("/")
+			for f in ("github_app_id", "github_installation_id"):
+				if self.get(f) and not str(self.get(f)).strip().isdigit():
+					frappe.throw(_("{0} must be a number").format(self.meta.get_label(f)))
+				if self.get(f):
+					self.set(f, str(self.get(f)).strip())
 		if self.status == "Active":
 			duplicate = frappe.db.exists(
 				"Agent Tool Credential",

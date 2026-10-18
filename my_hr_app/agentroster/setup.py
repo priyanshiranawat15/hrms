@@ -216,6 +216,17 @@ def get_email_templates():
 	return TEMPLATES
 
 
+GITHUB_STEP_DESCRIPTION = (
+	"<p>The agent's manager installs the team's GitHub App on the repo (dhruvbhavsar0612/browser-agent) and stores the"
+	" App ID, Installation ID and private key on an Agent Tool Credential in the HR portal. The agent fetches its GitHub"
+	" credentials from the HR portal (POST /api/method/my_hr_app.agentroster.credentials.get_my_tool_credentials with"
+	" tool=GitHub, logged in as itself) and receives a short-lived installation token scoped to that repo, never the key."
+	" It then opens the repo's Issues tab and reports back on the first open issue: what it is, and how it would fix it,"
+	" working only on its own branch with a pull request. (Fallback: if the manager sent a collaborator invite instead,"
+	" accept that invite from GitHub.)</p>"
+)
+
+
 def create_boarding_templates():
 	"""Agent onboarding/separation Employee Onboarding/Separation templates (spec 11.5 fixtures)."""
 	onboarding_activities = [
@@ -226,9 +237,7 @@ def create_boarding_templates():
 			"Tool Invite",
 			"GitHub",
 			2,
-			"<p>The agent's manager invites the agent's email to the team repo on GitHub. GitHub emails the invite."
-			" The agent accepts it (signing up for GitHub with its own email if needed), opens the repo's Issues tab,"
-			" and reports back on the first open issue: what it is, and how it would fix it.</p>",
+			GITHUB_STEP_DESCRIPTION,
 		),
 		(
 			"Slack access: Slack app created and installed, credentials issued by the manager; connect and say hello in the team channel",

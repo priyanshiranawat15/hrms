@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_url, now_datetime
 
-from my_hr_app.agentroster.doctype.agent_tool_credential.agent_tool_credential import SECRET_FIELDS
+from my_hr_app.agentroster.doctype.agent_tool_credential.agent_tool_credential import NEVER_RELEASED, SECRET_FIELDS
 
 RELEASED_STATUSES = ("Tool Access", "Ready for Assignment", "First Assignment", "Awaiting Approval", "Active")
 ENDPOINT = "/api/method/my_hr_app.agentroster.credentials.get_my_tool_credentials"
@@ -37,6 +37,68 @@ def has_active_credential(emp, tool: str) -> bool:
 	return bool(
 		frappe.db.exists("Agent Tool Credential", {"ai_agent": agent, "agent_tool": tool, "status": "Active"})
 	)
+
+
+GITHUB_API = "https://api.github.com"
+
+
+def normalize_pem(value: str) -> str:
+	"""Rebuild a PEM whose line breaks were lost (a desk password box is single-line)."""
+	import re
+
+	value = (value or "").strip().replace("\\n", "\n").replace("\r\n", "\n")
+	m = re.match(r"^(-----BEGIN [A-Z ]+-----)\s*(.+?)\s*(-----END [A-Z ]+-----)$", value, re.S)
+	if not m:
+		return value
+	body = re.sub(r"\s+", "", m.group(2))
+	lines = [body[i : i + 64] for i in range(0, len(body), 64)]
+	return "\n".join([m.group(1), *lines, m.group(3)]) + "\n"
+
+
+def mint_github_installation_token(doc) -> dict:
+	"""Sign a 9-minute App JWT (RS256) with the stored key and exchange it for an
+	installation access token (valid ~1 hour), scoped to the configured repo."""
+	import time
+
+	import jwt
+	import requests
+
+	app_id = (doc.github_app_id or "").strip()
+	installation_id = (doc.github_installation_id or "").strip()
+	pem = doc.get_password("github_private_key", raise_exception=False)
+	if not (app_id and installation_id and pem):
+		frappe.throw(_("Your manager hasn't finished setting up your GitHub App credentials yet."))
+	now = int(time.time())
+	app_jwt = jwt.encode({"iat": now - 60, "exp": now + 540, "iss": app_id}, normalize_pem(pem), algorithm="RS256")
+	payload = {}
+	repo = (doc.github_repo or "").strip()
+	if "/" in repo:
+		payload["repositories"] = [repo.split("/", 1)[1]]
+	resp = requests.post(
+		f"{GITHUB_API}/app/installations/{installation_id}/access_tokens",
+		json=payload,
+		headers={
+			"Authorization": f"Bearer {app_jwt}",
+			"Accept": "application/vnd.github+json",
+			"X-GitHub-Api-Version": "2022-11-28",
+		},
+		timeout=20,
+	)
+	if resp.status_code != 201:
+		msg = ""
+		try:
+			msg = resp.json().get("message", "")
+		except Exception:
+			pass
+		frappe.throw(_("GitHub refused to issue an installation token ({0}: {1}). Ask your manager to check the App ID, Installation ID and key.").format(resp.status_code, msg[:200]))
+	data = resp.json()
+	return {
+		"installation_token": data.get("token"),
+		"expires_at": data.get("expires_at"),
+		"repository": repo,
+		"permissions": data.get("permissions"),
+		"how_to_use": "git clone https://x-access-token:<installation_token>@github.com/" + repo + ".git  |  API: Authorization: Bearer <installation_token>. Fetch a new one when it expires.",
+	}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -76,9 +138,14 @@ def get_my_tool_credentials(tool: str | None = None):
 		doc = frappe.get_doc("Agent Tool Credential", name)
 		secrets = {}
 		for field in SECRET_FIELDS:
+			if field in NEVER_RELEASED:
+				continue
 			value = doc.get_password(field, raise_exception=False)
 			if value:
 				secrets[field] = value
+		if doc.agent_tool == "GitHub":
+			# never hand out the App private key: mint a short-lived installation token
+			secrets = mint_github_installation_token(doc)
 		out.append(
 			{
 				"tool": doc.agent_tool,
