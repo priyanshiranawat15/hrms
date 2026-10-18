@@ -21,6 +21,7 @@
 	</ul>
 	<form method="POST">
 		<input type="hidden" name="t" value="{{ token }}">
+		{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
 		<input type="hidden" name="cmd" value="my_hr_app.www.agent_ack.record_ack">
 		<div class="mb-3">
 			<label class="form-label">{{ _("In your own words: what do these rules require of you? (2-3 sentences)") }}</label>
