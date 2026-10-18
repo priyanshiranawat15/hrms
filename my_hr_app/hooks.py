@@ -165,13 +165,43 @@ after_migrate = ["my_hr_app.agent_registry.setup.ensure_agent_registry"]
 # ---------------
 # Hook on document methods and events
 
+after_migrate = "my_hr_app.agentroster.setup.setup_agentroster"
+
+fixtures = [
+	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},
+	{"dt": "Custom Field", "filters": [["dt", "=", "Employee Boarding Activity"]]},
+	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]},
+	{"dt": "Email Template", "filters": [["name", "like", "AgentRoster:%"]]},
+	{"dt": "Agent Tool"},
+	{"dt": "Policy Document"},
+	{"dt": "Employee Onboarding Template", "filters": [["title", "like", "Agent%"]]},
+	{"dt": "Employee Separation Template", "filters": [["title", "like", "Agent%"]]},
+]
+
+# Document Events
+# ---------------
+# Hook on document methods and events
+
 doc_events = {
 	"User": {
 		"validate": "my_hr_app.agent_registry.auth.prevent_agent_self_signup",
 	},
 	"Employee": {
-		"validate": "my_hr_app.agent_registry.employee_split.validate_employee",
-		"on_update": "my_hr_app.agent_registry.employee_split.on_employee_update",
+		"validate": "my_hr_app.agentroster.agent.validate_agent",
+		"on_update": "my_hr_app.agentroster.agent.on_agent_update",
+	},
+	"Employee Onboarding": {
+		"validate": "my_hr_app.agentroster.agent.validate_onboarding",
+		"on_update": "my_hr_app.agentroster.agent.on_onboarding_update",
+	},
+	"Employee Separation": {
+		"on_update": "my_hr_app.agentroster.agent.on_separation_update",
+	},
+	"Communication": {
+		"after_insert": "my_hr_app.agentroster.mail.on_communication",
+	},
+	"Policy Document": {
+		"on_update": "my_hr_app.agentroster.policy.on_policy_update",
 	},
 	"Project": {
 		"on_update": "my_hr_app.agent_registry.boarding.sync_from_project",
@@ -181,10 +211,23 @@ doc_events = {
 	},
 }
 
-from my_hr_app.agent_registry.employee_split import SKIPPED_DOCTYPES
+# Human-only HR sections stay closed to agents (salvaged from v1 employee_split).
+from my_hr_app.agent_registry.employee_split import SKIPPED_DOCTYPES  # noqa: E402
 
 for _skipped in SKIPPED_DOCTYPES:
 	doc_events[_skipped] = {"validate": "my_hr_app.agent_registry.employee_split.block_skipped_document"}
+
+# Scheduled Tasks
+# ---------------
+
+scheduler_events = {
+	"hourly": [
+		"my_hr_app.agentroster.jobs.remind_no_reply",
+	],
+	"daily": [
+		"my_hr_app.agentroster.jobs.reack_overdue",
+	],
+}
 
 # Scheduled Tasks
 # ---------------

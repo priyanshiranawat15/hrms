@@ -1,0 +1,218 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-10-17 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "employee",
+  "column_break_emp",
+  "policy_document",
+  "policy_code",
+  "policy_version",
+  "section_break_evidence",
+  "method",
+  "source_email",
+  "sender_verified",
+  "received_at",
+  "column_break_evidence",
+  "communication",
+  "content_hash",
+  "superseded",
+  "section_break_text",
+  "ack_text",
+  "section_break_check",
+  "check_result",
+  "checked_by",
+  "check_note",
+  "column_break_check",
+  "quiz_answers"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "APA-.#####",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_emp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "policy_document",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Policy Document",
+   "options": "Policy Document",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "policy_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Policy Code"
+  },
+  {
+   "fieldname": "policy_version",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Policy Version"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_evidence",
+   "fieldtype": "Section Break",
+   "label": "Evidence"
+  },
+  {
+   "default": "Email reply",
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Email reply\nWeb form\nRecorded by manager"
+  },
+  {
+   "fieldname": "source_email",
+   "fieldtype": "Data",
+   "label": "Source Email"
+  },
+  {
+   "default": "0",
+   "description": "Set when source address exactly equals the agent's agent_email",
+   "fieldname": "sender_verified",
+   "fieldtype": "Check",
+   "label": "Sender Verified",
+   "read_only": 1
+  },
+  {
+   "fieldname": "received_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Received At"
+  },
+  {
+   "fieldname": "column_break_evidence",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "communication",
+   "fieldtype": "Link",
+   "label": "Communication",
+   "options": "Communication"
+  },
+  {
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "label": "Content Hash",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "superseded",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Superseded"
+  },
+  {
+   "fieldname": "section_break_text",
+   "fieldtype": "Section Break",
+   "label": "Signed Text"
+  },
+  {
+   "fieldname": "ack_text",
+   "fieldtype": "Long Text",
+   "label": "Ack Text",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_check",
+   "fieldtype": "Section Break",
+   "label": "Check"
+  },
+  {
+   "default": "Not checked",
+   "fieldname": "check_result",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Check Result",
+   "options": "Not checked\nPass\nNeeds follow-up"
+  },
+  {
+   "fieldname": "checked_by",
+   "fieldtype": "Link",
+   "label": "Checked By",
+   "options": "User"
+  },
+  {
+   "fieldname": "check_note",
+   "fieldtype": "Small Text",
+   "label": "Check Note"
+  },
+  {
+   "fieldname": "column_break_check",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quiz_answers",
+   "fieldtype": "Long Text",
+   "label": "Quiz Answers (P1)"
+  }
+ ],
+ "index_on_search_fields": [],
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agentroster",
+ "name": "Agent Policy Acknowledgement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Agent Manager"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Agent Worker"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "policy_code",
+ "track_changes": 1
+}

@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "autoname": "field:tool_name",
+ "creation": "2026-10-17 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "tool_name",
+  "tool_code",
+  "default_role",
+  "column_break_name",
+  "admin_url",
+  "machine_user_note",
+  "section_break_instructions",
+  "invite_instructions",
+  "removal_instructions"
+ ],
+ "fields": [
+  {
+   "fieldname": "tool_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tool Name",
+   "reqd": 1
+  },
+  {
+   "description": "Used in reply keywords: JOINED <tool_code>",
+   "fieldname": "tool_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tool Code",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "default_role",
+   "fieldtype": "Data",
+   "label": "Default Role"
+  },
+  {
+   "fieldname": "column_break_name",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "admin_url",
+   "fieldtype": "Data",
+   "label": "Admin URL",
+   "options": "URL"
+  },
+  {
+   "fieldname": "machine_user_note",
+   "fieldtype": "Small Text",
+   "label": "Machine User Note"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_instructions",
+   "fieldtype": "Section Break",
+   "label": "Instructions"
+  },
+  {
+   "fieldname": "invite_instructions",
+   "fieldtype": "Text",
+   "label": "Invite Instructions"
+  },
+  {
+   "fieldname": "removal_instructions",
+   "fieldtype": "Text",
+   "label": "Removal Instructions"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agentroster",
+ "name": "Agent Tool",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Agent Manager"
+  },
+  {
+   "read": 1,
+   "role": "Agent Worker"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

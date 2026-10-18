@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "autoname": "format:{code}-v{version}",
+ "creation": "2026-10-17 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "code",
+  "title",
+  "policy_type",
+  "column_break_version",
+  "version",
+  "status",
+  "effective_date",
+  "content_hash",
+  "section_break_body",
+  "body",
+  "change_summary",
+  "supersedes",
+  "applies_section",
+  "applies_to_agents",
+  "applies_to_designations",
+  "column_break_applies",
+  "reack_grace_days",
+  "quiz_section",
+  "quiz_questions"
+ ],
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Code",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "policy_type",
+   "fieldtype": "Select",
+   "label": "Policy Type",
+   "options": "Rules of Agreement\nCode of Conduct\nAcceptable Use\nSecurity\nData Handling\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_version",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Version",
+   "non_negative": 1,
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nDraft\nPublished\nRetired"
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date"
+  },
+  {
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "label": "Content Hash",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_body",
+   "fieldtype": "Section Break",
+   "label": "Policy Body"
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Text Editor",
+   "label": "Body"
+  },
+  {
+   "fieldname": "change_summary",
+   "fieldtype": "Small Text",
+   "label": "Change Summary",
+   "depends_on": "eval:doc.status=='Published'"
+  },
+  {
+   "fieldname": "supersedes",
+   "fieldtype": "Link",
+   "label": "Supersedes",
+   "options": "Policy Document"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_to_agents",
+   "fieldtype": "Check",
+   "label": "Applies to Agents"
+  },
+  {
+   "fieldname": "applies_to_designations",
+   "fieldtype": "Table MultiSelect",
+   "label": "Applies to Designations",
+   "options": "Policy Applies To"
+  },
+  {
+   "fieldname": "column_break_applies",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "3",
+   "description": "Days an agent has to re-acknowledge after a policy update",
+   "fieldname": "reack_grace_days",
+   "fieldtype": "Int",
+   "label": "Re-ack Grace Days",
+   "non_negative": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "quiz_section",
+   "fieldtype": "Section Break",
+   "label": "Policy Quiz (P1)"
+  },
+  {
+   "fieldname": "quiz_questions",
+   "fieldtype": "Table",
+   "label": "Quiz Questions",
+   "options": "Policy Quiz Question"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Agentroster",
+ "name": "Policy Document",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Agent Manager"
+  },
+  {
+   "read": 1,
+   "role": "Agent Worker"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
